@@ -1,0 +1,4611 @@
+/*Announcement Rel CK Editor - Start */
+function setCkEditorDataForAnnouncementDescription(json) {
+	if(json.announcementId != 0) {
+		var allInstances = CKEDITOR.instances;
+		if(allInstances.length != 0) {
+			allInstances.description.setData(json.description);
+			$("#description_1").val(json.description);
+		}
+	}
+}
+/*Announcement Rel CK Editor - End */
+
+// Manage Faculty Mail Sending.
+function manageFacultyMailSend(type, manageDataId, selectedData) {
+	
+	var that = this;
+	var buttonName = $("a:focus").text();
+
+	var formData = {
+		controllerMode : 9000,
+		actionType : 192,
+//		type : type,
+//		id : manageDataId,
+//		selectedData : selectedData,
+		menuId : this.menuId
+	};
+	
+	var buttons = [
+		{
+			type : "button1",
+			label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true' id='downloadSummerHallTicketId'></span>View Recipients",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+				getRecipientsListBasedOnSelection();
+				return false;
+			}
+		},
+		{
+			type : "button",
+			label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true' id='saveSummerHallTicketId'></span>Send Mail",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+//				handleFacultyMailSend();
+				handleFacultyMailSendFn();
+				return false;
+			}
+		},
+		{
+			type : "cancel",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+			className : "btn-sm btn-default",
+			callback : null
+		} ];
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		getModalDialog('large',	"Faculty Mail Send", data, buttons, function() { });
+//		$(".outside-action-btn").removeClass("disabled");
+		removeBgCurtain();
+	});
+}
+
+
+function handleFacultyMailSendFn() {
+	
+	if (!$("#genericSave").valid()) {
+		return false;
+	}
+	
+	var formData = {
+		controllerMode : 9000,
+		actionType : 194,
+//		id : id,
+		menuId : this.menuId,
+		selectedData : selectedData
+	};
+
+	var obj = getDialogMessage(9000, 194, 0, "Faculty Mail Send");
+	
+	if (beforeGenericSave(formData, obj, 0, "#genericSave")) {
+		handleGenericSave(formData, obj, 0);
+	}
+}
+
+// Before Save Some Business Logic On Faculty Mail Send.
+// Validation And Value Setting.
+function beforeSaveFacultyMailSend() {
+	
+//	Variable Declaration.
+	var filterDataArry = [];
+	
+//	Checking Section Validation Logic.
+	$("[id^=checkSection_]").each(function() {
+		if($(this).is(":checked")) {
+			$("#"+$(this).attr('id')).val(1);
+			var filterDataObj = {};
+			filterDataObj.idType = $(this).attr('id').split("_")[1]
+			filterDataObj.subjectId = $(this).attr('id').split("_")[2]
+			filterDataObj.classBatchSecId = $(this).attr('id').split("_")[3]
+			filterDataObj.BatchClassId = $(this).attr('id').split("_")[4]
+			filterDataArry.push(filterDataObj);
+		} else {
+			$("#"+$(this).attr('id')).val(0);
+		}
+	});
+	
+//	Check Box Validation.
+	if(filterDataArry.length <= 0) {
+		showMessage("Please Select Any One Section Atleast", "error");
+		return false;
+	} else {
+		$('#filterDataArry').val(JSON.stringify(filterDataArry));
+	}
+	
+//	Email Subject Name Validation.
+	if($('#emailSubject').val()) {
+		$('#emailSubjectError').html('');
+	} else {
+		$('#emailSubjectError').html('Enter Subject');
+		return false;
+	}
+	
+//	Email Message Validation.
+	if($('#textMessage_1').val()) {
+		$('#textMessageError').html('');
+	} else {
+		$('#textMessageError').html('Enter Text');
+		return false;
+	}
+	
+//	Recipients Validation.
+	if($('#recipientsDataTable').length > 0) {
+		if(selectedUsersArry && selectedUsersArry.length <= 0) {
+			showMessage('Please select the users to send message.', 'error');
+			return false;
+		}
+		$('#isDataBaseFetch').val(0);
+		$('#selectedUsersArry').val(JSON.stringify(selectedUsersArry));
+	} else {
+		$('#isDataBaseFetch').val(1);
+	}
+	
+//	var userParentNoOnlyAlso Initialization.
+	if($('#sendTo_ParentsOnly').val() == "1") {
+		$('#userParentNoOnlyAlso').val(1);
+	} else if($('#sendTo_ParentsAlso').val() == "1") {
+		$('#userParentNoOnlyAlso').val(2);
+	} else {
+		$('#userParentNoOnlyAlso').val(0);
+	}
+
+//	Returning True.
+	return true;
+}
+
+function getRecipientsListBasedOnSelection() {
+	
+//	Variable Declaration.
+	var filterDataArry = [];
+	
+//	Checking Section Validation Logic.
+	$("[id^=checkSection_]").each(function() {
+		if($(this).is(":checked")) {
+			$("#"+$(this).attr('id')).val(1);
+			var filterDataObj = {};
+			filterDataObj.idType = $(this).attr('id').split("_")[1]
+			filterDataObj.subjectId = $(this).attr('id').split("_")[2]
+			filterDataObj.classBatchSecId = $(this).attr('id').split("_")[3]
+			filterDataObj.BatchClassId = $(this).attr('id').split("_")[4]
+			filterDataArry.push(filterDataObj);
+		} else {
+			$("#"+$(this).attr('id')).val(0);
+		}
+	});
+	
+//	Check Box Validation.
+	if(filterDataArry.length <= 0) {
+		showMessage("Please Select Any One Section Atleast", "error");
+		return false;
+	}
+	
+//	Initializing Values Into formData.
+	var formData = {};
+	formData.controllerMode = 9000;
+	formData.actionType = 193;
+	formData.menuId = this.menuId;
+	formData.filterDataArry = JSON.stringify(filterDataArry);
+	
+	bgCurtain();
+	doAjaxCall('instituteApp', 'GET', formData, function(data) {
+		$('#messageRecipientsDiv').show();
+		$('#messageRecipients').html(data);
+		removeBgCurtain();
+	});
+}
+
+//	Check Box Function.
+function handleCheckBoxesForFacultyMailSend() {
+	$("#checkAllRegisteredUsers").off('click');
+	$("#checkAllRegisteredUsers").on('click', function() {
+		var allPages = recipientsDataTable.column().nodes();
+		if($(this).prop('checked') == true) {
+			selectedUsersArry = [];
+			$('input[type="checkbox"]', allPages).prop('checked', true);
+			$.each(allPages, function(index, currentValue) {
+				var selectedUsersObj = {};
+				selectedUsersObj.userId = currentValue.getAttribute('data-userId');
+				selectedUsersObj.firstName = currentValue.getAttribute('data-firstName');
+				selectedUsersObj.studentEmail = currentValue.getAttribute('data-email');
+				selectedUsersObj.fatherName = currentValue.getAttribute('data-fatherName');
+				selectedUsersObj.fatherEmail = currentValue.getAttribute('data-fatherEmail');
+				selectedUsersObj.motherName = currentValue.getAttribute('data-motherName');
+				selectedUsersObj.motherEmail = currentValue.getAttribute('data-motherEmail');
+				selectedUsersArry.push(selectedUsersObj);
+			});
+		} else {
+			$('input[type="checkbox"]', allPages).prop('checked', false);
+			selectedUsersArry = [];
+		}
+	});
+	
+	$('input[id^=registeredUsers]').off('click');
+	$('input[id^=registeredUsers]').on('click', function() {
+		var clickedEmail = $(this).attr('data-email');
+		if($(this).prop('checked') == true) {
+			var selectedUsersObj = {};
+			selectedUsersObj.studentEmail = clickedEmail;
+			selectedUsersObj.userId = $(this).attr('data-userId');
+			selectedUsersObj.firstName = $(this).attr('data-firstName');
+			selectedUsersObj.fatherName = $(this).attr('data-fatherName');
+			selectedUsersObj.fatherEmail = $(this).attr('data-fatherEmail');
+			selectedUsersObj.motherName = $(this).attr('data-motherName');
+			selectedUsersObj.motherEmail = $(this).attr('data-motherEmail');
+			selectedUsersArry.push(selectedUsersObj);
+			$(this).prop('checked', true);
+		} else {
+			selectedUsersArry = $.each(selectedUsersArry, function(index, selectedUsersObj) {
+				if(selectedUsersObj) {
+					if(selectedUsersObj.studentEmail = clickedEmail) {
+						selectedUsersArry.splice(index, 1);
+						$("#checkAllRegisteredUsers").prop('checked', false);
+						return false;
+					}
+				}
+			});
+		}
+	});
+}
+
+// Check Box Rel Function.
+function getSelectedUsersList(recipientsDtaInJson) {
+	selectedUsersArry = [];
+	var recipientsDta = $.parseJSON(recipientsDtaInJson);
+	$.each(recipientsDta, function(index, value) {
+		var selectedUsersObj = {};
+		if(value) {
+			selectedUsersObj.userId = value.StudentId;
+			selectedUsersObj.firstName = value.FirstName;
+			selectedUsersObj.studentEmail = value.Email;
+			selectedUsersObj.fatherName = value.FatherName;
+			selectedUsersObj.fatherEmail = value.FatherEmail;
+			selectedUsersObj.motherName = value.MotherName;
+			selectedUsersObj.motherEmail = value.MotherEmail;
+			selectedUsersArry.push(selectedUsersObj);
+		}
+	});
+}
+
+//************start vms code ***************//
+function getmanageVisitorsComboBox(){
+	getCombobox('/Academy/a/i/getInstitutes', 'searchInstId',null,null,function() {
+		$("#searchInstId").prepend('<option value=-1>ALL</option>');
+		
+		$('#searchInstId option:first-child').attr("selected", "selected");
+		if($('#searchInstId').val()){
+			getCheckCombobox("/Academy/a/g/getVistorsStatusByInst/"+$('#searchInstId').val(), "status-searchStateNameId");
+			getCombobox('/Academy/a/i/getVmsQuotaByInstIdOrParent/'+$('#searchInstId').val(), 'searchQuotaId');
+			getCombobox('/Academy/a/i/programByInstIdOrParentForVMS/'+$('#searchInstId').val(), 'searchProgramId');
+			/*getCombobox('/Academy/a/i/configValue/0/80', 'searchBatchId');*/
+		}
+			
+	});
+	
+	
+	$("#searchProgramId").change(function(){
+		getCombobox('/Academy/a/i/getBranchOfProgram/'+$("#searchProgramId").val(), 'searchBranchId');
+		
+	});
+	$("#searchInstId").change(function(){
+		getCheckCombobox("/Academy/a/g/getVistorsStatusByInst/"+$('#searchInstId').val(), "status-stateNamesId");
+		getCombobox('/Academy/a/i/getVmsQuotaByInstIdOrParent/'+$('#searchInstId').val(), 'searchQuotaId');
+		getCombobox('/Academy/a/i/programByInstIdOrParentForVMS/'+$('#searchInstId').val(), 'searchProgramId');
+		/*getCombobox('/Academy/a/i/configValue/0/80', 'searchBatchId');*/
+		
+	});
+}
+
+
+function vmsAutoRefresh(){
+	
+if($("#vmsautorefresh").val()==undefined){
+	
+	}else{
+		if(!modalDialog && !modalConfirm){
+			if ($("#vmsautorefresh").is(':checked')) {
+				getVisitorsDetailsBySearch();
+			}
+			
+		}
+		setTimeout(vmsAutoRefresh, 30000);
+	}
+
+}
+
+function getVisitorsDetailsBySearch(){
+	
+	var qta=$('#searchQuotaId').val();
+	if($('#searchQuotaId').val()!='' && $('#searchQuotaId').val()!=null){
+		qta=$('#searchQuotaId').val().toString()
+	}
+	var formData={
+			controllerMode : 7670,
+			actionType : 8,
+			instId:$('#searchInstId').val(),
+			sDate:$('#searchFromDate').val(),
+			eDate:$('#searchToDate').val(),
+			status:$('#searchStateNameId').val(),
+			quota:qta,
+			programId:$('#searchProgramId').val(),
+			branchId:$('#searchBranchId').val(),
+			refNo:$('#searchRefNo').val(),
+			selectTypeId:$('#selectTypeId').val(),
+			menuId:this.menuId
+	};
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'POST', formData, function(data) {
+		removeBgCurtain();
+		$("#requestedVisitorsDetails").html(data);
+		
+	});
+ 
+}
+
+
+
+
+function showEditVisitorDetails(type, controllerMode, actionType, id, selectedData){
+	
+	bgCurtain();
+	var title = 'Edit-Visitor Details';
+	var formData = {
+		controllerMode : controllerMode,
+		actionType : actionType,
+		visitorDetailId :  id,
+		userId : selectedData,
+		menuId : this.menuId,
+	};
+	var buttons = [
+		{
+			type : "button",
+			label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Update",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+				
+				
+				if (!$("#updateVisiotorDetails").valid()){
+						return false;
+				}else{
+					getConfirmDialog("Visitor Details", "Are You Sure do want to Update Visitor Details?", function() {
+						bgCurtain();
+						updateVisitorDetail();
+						setTimeout(function() {
+							modalDialog.modal('hide');
+							getVisitorsDetailsBySearch();
+							removeBgCurtain();
+						}, 500);
+					});
+					return false;
+				}			
+			}
+		},
+				{
+			type : "cancel",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+			}
+		}
+		];
+	doAjaxCall(this.url, 'POST', formData, function(data) {
+		getModalDialog('large', title, data,buttons, function() {
+			
+		});
+		removeBgCurtain();
+	});
+}
+
+
+function resetgetVisitorsDetailsBySearch(){
+	
+	$("[data-parent='6']").each(function() {
+		$(this).val('');
+	});
+	$("#selectedCheck").empty();
+	$('[id^=checkcomboid_]').each(function(){
+		$(this).prop("checked",false);
+	});
+	$('#searchInstId').val($('#searchInstId option:first-child').val());
+	$('#searchType').val($('#searchType option:first-child').val());
+	$("#searchQuotaId option:selected").prop("selected", false);
+	$('#requestedVisitorsDetails').html("");
+	
+}
+
+
+function handleVisitorState(wfstateid,wfstatename,wfid,wfmoduleid,visitordetailid,userid,fromstatus,vPreferenceId){
+	
+	var formData = {
+			controllerMode : 7670,
+			actionType : 167,
+			workflowstate :  wfstateid,
+			wfStateName : wfstatename,
+			workflowId:wfid,
+			wfmoduleId:wfmoduleid,
+			visitorDetailId:visitordetailid,
+			studentId:userid,
+			fromStatus:fromstatus,
+			dataValue1:vPreferenceId,
+			menuId : this.menuId,
+		};
+	getConfirmDialog("Visitor Details ", "Do you want to change the status to "+wfstatename+"?", function() {
+		
+		bgCurtain(); 	
+		doAjaxCall(this.url, 'POST', formData, function(data) {
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			removeBgCurtain();
+			if (status == "SUCCESS") {
+				showMessage(statusResp, "success");
+				getVisitorsDetailsBySearch();
+			}else{
+				showMessage(statusResp, "error");
+			}
+		});
+	});
+}
+
+function handleVMSWorkFlowHistory(controllerMode,actionType,id,selectedData,wfModuleId,vPreferenceId){
+	var formData = {
+		controllerMode : parseInt(controllerMode),
+		actionType : parseInt(actionType),
+		id : id,
+		selectedData : selectedData,
+		wfModuleId : parseInt(wfModuleId),
+		dataValue1:vPreferenceId,
+		menuId : this.menuId
+	};
+	var buttons = {};
+	var buttons = [ {
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Close",
+		className : "btn-sm btn-default",
+		callback : null
+	} ];
+	var genTitile = selectedData;
+	if (!genTitile)
+		genTitile = "";
+
+	var title = "" + genTitile + ": History";
+	bgCurtain(); 	
+	doAjaxCall(this.url, 'get', formData, function(data) {
+		getModalDialog('large', title, data, buttons, function() {
+			removeBgCurtain();
+		});
+		
+	});
+}
+
+/////Start VMS Fee Collection//////////////
+function handleVMSFeeCollection(controllerMode,actionType,v_id,userId){
+	var formData = {
+			controllerMode : parseInt(controllerMode),
+			actionType : parseInt(actionType),
+			id : userId,
+			menuId : this.menuId
+		};
+	var buttons = {};
+	var buttons = [ {
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Close",
+		className : "btn-sm btn-default",
+		callback : function(data){
+			
+			getConfirmDialog("Fee Collect", "Are you sure you want to close ? ", function() {
+				modalDialog.modal('hide');
+			});
+			return false;
+		}
+	} ];
+	
+	doAjaxCall(this.url, 'get', formData, function(data) {
+		getModalDialog('large', "Fee Collect", data, buttons, function() {
+			 eval(this.url + "(controllerMode,actionType,id,selectedData);");
+
+		},null,null,function(){
+			 if(x){
+				 x=false;
+			getConfirmDialog("Fee Collect", "Are you sure you want to close ? ", function() {
+				if(modalDialog){
+					modalDialog.modal('hide');
+					}
+				x=true;
+				
+				
+				$('#dt_btnContainer a:eq(0)').focus();
+			}, function() {
+				x=true;
+				$('#dt_btnContainer a:eq(0)').focus();
+			});
+			 }
+		});
+
+	});
+	
+}
+
+function saveandPrintVisitorBill(controllerMode,actionType){
+	//$('#bill-save').addClass('not-active');
+	if (!$("#genericSave").valid() || formErrorList.length>0){
+		//$('#bill-save').removeClass("not-active");
+		return false;
+		
+	}
+		
+	var formData = {
+			controllerMode : 7670,
+			actionType : 170,
+			id : 0,
+			selectedData : selectedData,
+			menuId : this.menuId
+		};
+	var obj = {};
+	obj.callBack=true;
+	getFeeMasterHeader();
+	if(checkBillValidation()){
+		 handleGenericSave(formData,obj,1);		 
+		}else{
+			modalDialog.modal('show');
+		}
+	
+		
+}
+function checkVMSFeeValidation(){
+	var ret=true;
+	
+	if(!$('#totalAmount').val()){
+		showMessage("Add fee", "Error");
+		ret=false;
+	}else if(($('#ddcheck').val()==1) &&  (!$('#ddamount').val())){
+		showMessage("Add DD Details", "error");
+		ret=false;
+	}else if(($('#cashcheck').val()==1)&&(getInteger($('#cashamount').val(),0)<=0)){
+		
+		showMessage("Add Cash Details", "error");
+		ret=false;
+	}else{
+		if(!(parseFloat($('#totalAmount').val())==parseFloat($('#grandtotal').val()))){
+			showMessage("Grand Total and Total Amount Not Matched", "error");
+		ret=false;}
+	}
+	return ret;
+}
+/////END VMS Fee Collection//////////////
+
+
+
+//************start vms code by sharan***************//
+function getUpdateComboBox(id){
+	
+	getCombobox('/Academy/a/i/getInstitutes', 'getInstId_'+id,null,null,function(){
+		getvmsPgm(id);
+	
+	});
+	
+}
+
+
+function getvmsPgm(id){
+	getCombobox('/Academy/a/i/getVmsQuotaByInstIdOrParent/'+$('#getInstId_'+id).val(), 'getQuotaId_'+id);
+	getCombobox('/Academy/a/i/programByInstIdOrParentForVMS/'+$('#getInstId_'+id).val(), 'getProgramId_'+id,null,null,function(){
+			if($("#getProgramId_"+id).val()){
+				getCombobox('/Academy/a/i/getBranchOfProgram/'+$("#getProgramId_"+id).val(), 'getBranchId_'+id);
+			}
+		});
+	
+	$("#getProgramId_"+id).change(function(){
+		getCombobox('/Academy/a/i/getBranchOfProgram/'+$("#getProgramId_"+id).val(), 'getBranchId_'+id);
+		
+	});
+	$("#getInstId_"+id).change(function(){
+		getCombobox('/Academy/a/i/getVmsQuotaByInstIdOrParent/'+$('#getInstId_'+id).val(), 'getQuotaId_'+id);
+		getCombobox('/Academy/a/i/programByInstIdOrParentForVMS/'+$('#getInstId_'+id).val(), 'getProgramId_'+id,null,null,function(){
+			if($("#getProgramId_"+id).val()==null || $("#getProgramId_"+id).val()=="" || $("#getProgramId_"+id).val()==undefined){
+				$("#getBranchId_"+id).empty();
+			} else{
+				getbranchComboBox(id);
+			}
+		});
+		
+	});
+	
+}
+
+
+function getbranchComboBox(id){
+	getCombobox('/Academy/a/i/getBranchOfProgram/'+$("#getProgramId_"+id).val(), 'getBranchId_'+id,null,null,function(){
+	});
+}
+
+
+function getProgramComboBox(id){
+	getCombobox('/Academy/a/i/programByInstIdOrParentForVMS/'+$('#getInstId_'+id).val(), 'getProgramId_'+id,null,null,function(){
+		
+	
+		});
+}
+//************end vms code ***************//
+
+function initTrimFunc() {
+	$('[data-val="trim"]').on('focusout', function(){
+		$(this).val($(this).val().trim());
+	});
+}
+
+
+
+//*********************** Start ISA Marks Template ******************//
+function getIsaTemplateMarks(){
+	if(!$('#searchISATemplateId').val()){
+		return false;
+	}
+	
+	if($('#fsisatemplateId').val()!=$('#searchISATemplateId').val()){
+		$("#isamarkssavediv").css('display', 'block');
+
+	}else{
+		$("#isamarkssavediv").css('display', 'none');
+	}
+	
+	var formData={
+			controllerMode : 9000,
+			actionType : 172,
+			isaTemplateId:$('#searchISATemplateId').val(),
+			menuId:this.menuId
+	};
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'POST', formData, function(data) {
+		removeBgCurtain();
+		$("#showISAMarksTemplate").html(data);
+		
+	});
+ 
+}
+function manageISAFacultySubjectMarksHandle(){
+	if(!$('#fsisatemplateId').val()){
+		$("#isamarkssavediv").css('display', 'block');
+
+	}
+	
+}
+
+function updateISAMarksTemplate(){
+	$('#saveIsaMarksTemplateA').attr("onClick", "return false;");
+
+
+	var formData={
+			controllerMode : 9000,
+			actionType : 173,
+			facultySubjectId:$('#facultySubjectId').val(),
+			isaMarksTemplateId:$('#searchISATemplateId').val(),
+			existingtemplateId:$('#fsisatemplateId').val(),
+			idtype:$('#idtype').val(),
+			subjectId:$('#faculty_sub_Id').val(),
+			menuId:this.menuId
+	};
+	var data =$('#showISAMarksTemplate').html();
+	getConfirmDialog("ISA Marks Template", "Recompute the marks with selected Isa Pattern . "+data, function() {
+		bgCurtain();
+		doAjaxCall(this.url, 'POST', formData, function(data) {
+			removeBgCurtain();
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			removeBgCurtain();
+			if (status == "SUCCESS") {
+				showMessage(statusResp, "success");
+				$('#fsisatemplateId').val($('#searchISATemplateId').val());
+				 getFacultySubjectTemplateDetails(9000,17);
+				 if($("#isaMarksMasterId").val()){
+					isaMarksStudentSearch($("#controllerMode").val(),$("#actionType").val(),0,$("#isaMarksMasterId").val())
+
+				 }
+				 $("#isamarkssavediv").css('display', 'none');
+
+			}else{
+				showMessage(statusResp, "error");
+			}
+			
+		});	
+		$('#saveIsaMarksTemplateA').attr("onClick", "return true;");
+
+
+	},function(){
+		$('#saveIsaMarksTemplateA').attr("onClick", "return true;");
+	});
+}
+
+
+function downloadVisitorsDetails(){
+	
+	var instId=null;
+	var sDate=null;
+	var eDate=null;
+	var status=null;
+	var quota=null;
+	var programId=null;
+	var branchId=null;
+	var refNo=null
+	
+	if($('searchInstId').val()!='' && $('#searchInstId').val()!=null){
+		instId=$('#searchInstId').val();
+	}
+	
+	if($('#searchFromDate').val()!='' && $('#searchFromDate').val()!=null){
+		sDate=$('#searchFromDate').val();
+	}
+	if($('#searchToDate').val()!='' && $('#searchToDate').val()!=null){
+		eDate=$('#searchToDate').val();
+	}
+	if($('#searchStateNameId').val()!='' && $('#searchStateNameId').val()!=null){
+		status=$('#searchStateNameId').val();
+	}
+	if($('#searchProgramId').val()!='' && $('#searchProgramId').val()!=null){
+		programId=$('#searchProgramId').val();
+	}
+	if($('#searchBranchId').val()!='' && $('#searchBranchId').val()!=null){
+		branchId=$('#searchBranchId').val();
+	}
+	if($('#searchQuotaId').val()!='' && $('#searchQuotaId').val()!=null){
+		quota=$('#searchQuotaId').val().toString();
+	}
+	if($('#searchRefNo').val()!='' && $('#searchRefNo').val()!=null){
+		refNo=$('#searchRefNo').val();
+	}
+	
+	
+	if($('#searchQuotaId').val()!='' && $('#searchQuotaId').val()!=null){
+		quota=$('#searchQuotaId').val().toString();
+	}
+	var selectTypeId=$('#selectTypeId').val();
+	var menuId=this.menuId;
+	
+	var url='getVMSSummeryReport/'+menuId+'/'+refNo+'/'+status+'/'+quota+'/'+sDate+'/'+eDate
+	+'/'+programId+'/'+branchId+'/'+instId+'/'+selectTypeId;
+	var w=window.open(url,'_self');		
+	
+	
+}
+
+function addISAMarksTemplate123() {
+	
+//	Combo Box On Page Loading.
+	getCombobox('/Academy/a/i/getRestrictedInstitutesByGroup', 'institutionId', null, null, function() {
+		if(parseInt($('#institutionId').attr("data-selected")) <= 0) {
+			$('#institutionId option:first-child').attr("selected", "selected");
+		}
+		 if($('#institutionId').val() > 0) {
+			 getCombobox('/Academy/a/i/getIsamarksmasterOnInstBase/' + $('#institutionId').val(), 'tempIsaMarksMasterId', null, null, function() {
+				 if($('#tempIsaMarksMasterId').html() != '') {
+					 $("[id^=isaMarksMasterId_]").each(function() {
+						$(this).html($('#tempIsaMarksMasterId').html());
+						$(this).val($(this).attr('data-selected'));
+					 });
+				 }
+			 });
+		 }
+	 });
+}
+
+
+
+//*********************** End ISA Marks Template ********************//
+
+
+// ******************************************* ISA Marks Template. - Start **********************************************//
+function addISAMarksTemplate() {
+	
+//	Combo Box On Page Loading.
+	getCombobox('/Academy/a/i/getRestrictedInstitutesByGroup', 'institutionId', null, null, function() {
+		if(parseInt($('#institutionId').attr("data-selected")) <= 0) {
+			$('#institutionId option:first-child').attr("selected", "selected");
+		}
+		 if($('#institutionId').val() > 0) {
+			 getCombobox('/Academy/a/i/getIsamarksmasterOnInstBase/' + $('#institutionId').val(), 'tempIsaMarksMasterId', null, null, function() {
+				 if($('#tempIsaMarksMasterId').html() != '') {
+					 $("[id^=isaMarksMasterId_]").each(function() {
+						$(this).html($('#tempIsaMarksMasterId').html());
+						$(this).val($(this).attr('data-selected'));
+					 });
+				 }
+			 });
+		 }
+	 });
+	 
+//	Combo Box On Change Of Institution.
+	 $("#institutionId").change(function() {
+		 if($('#institutionId').val() > 0) {
+			 getCombobox('/Academy/a/i/getIsamarksmasterOnInstBase/' + $('#institutionId').val(), 'tempIsaMarksMasterId', null, null, function() {
+				 if($('#tempIsaMarksMasterId').html() != '') {
+					 $("[id^=isaMarksMasterId_]").each(function() {
+						$(this).html($('#tempIsaMarksMasterId').html());
+						$(this).val($(this).attr('data-selected'));
+					 });
+				 }
+			 });
+		 }
+	 });
+	 
+//	Remove Function.
+	var tempObjFrDelTemplateDetails = {};
+	var tempObjArrDelTemplateDetails = [];
+	$("#IsaMarksTemplateTbl").on("click", ".removeIsaMarksTemplate", function() {
+		tempObjFrDelTemplateDetails = {};
+		var remove_id = $(this).attr('id');
+		if(remove_id.split("_")[1] != "new") {
+			tempObjFrDelTemplateDetails.templateDetailsId = remove_id.split("_")[1];
+			tempObjArrDelTemplateDetails.push(tempObjFrDelTemplateDetails);
+		}
+		
+		var tempData = JSON.stringify(tempObjArrDelTemplateDetails);
+		$('#templateDetailsIdsForDeleting').val(tempData);
+		
+		$(this).closest("tr").remove();
+	});
+	
+//	Add Function.
+	$("#addIsaMarksTemplateId").on("click", function() {
+		var idCount = 0;
+		$("[id^=isaMarksMasterId_new]").each(function() {
+			var isa_id = $(this).attr('id');
+			if(isa_id.split("_")[2] > idCount)
+				idCount = isa_id.split("_")[2];
+		});
+		idCount++;
+		if($('#institutionId').val() > 0) {
+			var newRow = '<tr>'
+				+'<td><select class="form-control tmplname" name="isaMarksMasterId_new_'+idCount+'" id="isaMarksMasterId_new_'+idCount+'" data-name="templateId" data-selected="" required="required">'+$("#tempIsaMarksMasterId").html()+'</select></td>'
+				+'<td><input type="number" data-name="maxMarks" name="assignedMaxMarks_new_'+idCount+'" id="assignedMaxMarks_new_'+idCount+'" class="form-control input-md isamaxmarks isisatmplchanged" value="" required="required"></td>'
+				+'<td><input type="number" data-name="scalledMarks" name="assignedScaledMarks_new_'+idCount+'" id="assignedScaledMarks_new_'+idCount+'" class="form-control input-md scalledmarks isisatmplchanged" value="" required="required"></td>'
+				+'<td class="text-center" style="vertical-align: middle;"><a id="removeId_new_'+idCount+'" class="btn btn-default btn-xs outside-action-btn removeIsaMarksTemplate"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove</a></td>'
+				+'</tr>';
+			$("#IsaMarksTemplateTbl>tbody").append(newRow);
+		} else {
+			showMessage("Please Select Institute", 'error');
+		}
+	});
+}
+	 
+// Before Save Function.
+function saveBeforeIsaMarksTemplate() {
+	
+	var retVal = false;
+	
+//	Validating Assessment Type Unique.
+	$("[id^=isaMarksMasterId_]").each(function() {
+		var flag = 0;
+		var tempData1 = $("#"+$(this).attr('id')).val();
+		$("[id^=isaMarksMasterId_]").each(function() {
+			var tempData2 = $("#"+$(this).attr('id')).val();
+			if(tempData1 == tempData2) {
+				flag = flag + 1;
+			}
+		});
+		if(flag >= 2) {
+			retVal = true;
+			return false;
+		}
+	});
+	
+	if(retVal) {
+		showMessage("Assessment Type Should Be Unique", "error");
+		return false;
+	}
+	
+//	Validating Scaled Mark Should Not Be Greater Than Max Marks.
+	var loopFlg1 = -1;
+	var loopFlg2 = -1;
+	$("[id^=assignedMaxMarks_]").each(function() {
+		loopFlg1 = loopFlg1 + 1;
+		var tempData1 = parseInt($("#"+$(this).attr('id')).val());
+		$("[id^=assignedScaledMarks_]").each(function() {
+			loopFlg2 = loopFlg2 + 1;
+			var tempData2 = parseInt($("#"+$(this).attr('id')).val());
+			if(loopFlg1 == loopFlg2) {
+				if(tempData1 < tempData2) {
+					retVal = true;
+				}
+			}
+		});
+		
+//		After Exiting Inner Loop Set To -1.
+		loopFlg2 = -1;
+		
+		if(retVal) {
+			return false;
+		}
+	});
+	
+//	After Exiting Outer Loop Set To -1.
+//	loopFlg1 = -1;	// Use Less Here.
+	
+	if(retVal) {
+		showMessage("Scaled Mark Should Not Be Greater Than Max Marks", "error");
+		return false;
+	}
+	
+//	/////////////////////////// - Look Above.
+	var obj = {};
+	var objArr = [];
+	$("[id^=isaMarksMasterId_]").each(function() {
+		obj = {};
+		var isa_id = $(this).attr('id');
+		if(isa_id.split("_")[1] == "new") {
+			obj.id = 0;
+			obj.isaMarksMasterId = $("#isaMarksMasterId_new_"+isa_id.split("_")[2]).val();
+			obj.assignedMaxMarks = $("#assignedMaxMarks_new_"+isa_id.split("_")[2]).val();
+			obj.assignedScaledMarks = $("#assignedScaledMarks_new_"+isa_id.split("_")[2]).val();
+		} else {
+			obj.id = isa_id.split("_")[1];
+			obj.isaMarksMasterId = $("#isaMarksMasterId_"+isa_id.split("_")[1]).val();
+			obj.assignedMaxMarks = $("#assignedMaxMarks_"+isa_id.split("_")[1]).val();
+			obj.assignedScaledMarks = $("#assignedScaledMarks_"+isa_id.split("_")[1]).val();
+		}
+		objArr.push(obj);
+	});
+	var data = JSON.stringify(objArr);
+	$('#templateDetails').val(data);
+	
+	return true;
+}
+
+// Update Check Box Val.
+function updateCheckBoxValIsaTemplt() {
+	if (document.getElementsByName('status')[0].checked == true) {
+	 document.getElementsByName('status')[0].value = 1;
+	} else if (document.getElementsByName('status')[0].checked == false) {
+	 document.getElementsByName('status')[0].value = 0;
+	} else {
+	 document.getElementsByName('status')[0].value = 1;
+	}
+}
+//******************************************* ISA Marks Template. - End **********************************************//
+//Start Faculty Subject Template///////////
+function getFacultySubjectTemplateDetails(controllerMode, actionType){
+	
+	if(!$('#fsisatemplateId').val()){
+		//showMessage("Please Select Template ",'error');
+		return false;
+	}
+	var formData = {
+			controllerMode : parseInt(controllerMode),
+			actionType : parseInt(actionType),
+			isatemplateId : $('#fsisatemplateId').val(),
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#fsisamtemplatedetails').html(data);
+	});
+}
+
+//////////////////Scaled ISA Marks Start By Vikas ////////////////
+
+function isaScaledmarksmanage(){
+	var insId=$("#institutionId").val();
+	if(insId)
+	{
+	getCombobox("/Academy/a/i/getBatchBasedOnInstitutes/"+insId, "batchId",null,null,function(){
+		$('#batchId option:first-child').attr("selected", "selected");
+
+		getCombobox("/Academy/a/i/programByInstId/"+insId, "programId",null,null,function(){
+			$('#batchId option:first-child').attr("selected", "selected");
+			getCombobox("/Academy/a/i/semestersBasedOnBatchAndPgm/"+$("#institutionId").val()+"/"+$("#programId").val()+"/"+$("#batchId").val(), "batchClassId");
+		});
+	});
+	}
+	
+	$("#institutionId").change(function()
+			{
+		var insId=$(this).val();
+		if(insId)
+		{
+		getCombobox("/Academy/a/i/getBatchBasedOnInstitutes/"+insId, "batchId",null,null,function(){
+			$('#batchId option:first-child').attr("selected", "selected");
+			getCombobox("/Academy/a/i/programByInstId/"+insId, "programId",null,null,function(){
+				$('#batchId option:first-child').attr("selected", "selected");
+				getCombobox("/Academy/a/i/semestersBasedOnBatchAndPgm/"+$("#institutionId").val()+"/"+$("#programId").val()+"/"+$("#batchId").val(), "batchClassId");
+		
+			});
+		});
+		}
+		});
+	$("#batchId").change(function()
+			{
+		getCombobox("/Academy/a/i/semestersBasedOnBatchAndPgm/"+$("#institutionId").val()+"/"+$("#programId").val()+"/"+$("#batchId").val(), "batchClassId");
+			});
+	
+	$("#batchClassId").change(function()
+			{
+		getCombobox("/Academy/a/i/batchClassSections/"+$("#batchClassId").val(), "batchClassSecId");
+		getCombobox("/Academy/a/i/batchClassSubjects2/"+$("#batchClassId").val(), "batchClassSubId","","",function(){
+			$("#batchClassSubId option").prop("selected",true);
+		});
+			});
+	
+	$("#programId").change(function()
+			{
+		getCombobox("/Academy/a/i/semestersBasedOnBatchAndPgm/"+$("#institutionId").val()+"/"+$("#programId").val()+"/"+$("#batchId").val(), "batchClassId");
+		
+			});
+	
+	
+	
+}
+
+function getFacultySubjectBatchClassFn1(type){
+	var programId=$("#programId").val();
+	var deptId=$("#deptId").val();
+	var instId=$("#institutionId").val();
+	if( !programId || !deptId)
+		return false;
+	$('#batchClassSubId').html('');
+	$('#batchClassSecId').html('');
+
+	
+	getCombobox('/Academy/a/i/getactiveclassbyIPD/'+instId+"/"+programId+"/"+deptId, 'batchClassId',null,null,function(){
+		$('#batchClassId option[value!=""]:first').prop("selected",true);
+		if($('#batchClassId').val()){
+			getCombobox("/Academy/a/i/batchClassSections/"+$('#batchClassId').val(), "batchClassSecId");
+			getCombobox("/Academy/a/i/batchClassSubjects2/"+$('#batchClassId').val(), "batchClassSubId","","",function(){
+				$("#batchClassSubId option").prop("selected",true);
+			});
+		}
+		
+
+	});
+
+}
+//////////////////////Scaled ISA Marks End ///////////////////////////
+
+//////////////////////////////////////////////////// Admin ISA Marks Entry : - Start //////////////////////////////////////////////////////////
+function isamarksEntrymanage() {
+	getCombobox('/Academy/a/i/getInstitutes', 'institutionId', null, null, function() {
+		$('#institutionId option[value!=""]:first').prop("selected",true);
+		if($("#institutionId").val()) {
+//			getCombobox("/Academy/a/i/getBatchBasedOnInstitutes/" + $("#institutionId").val(), "batchId", null, null, function() {
+				getCombobox("/Academy/a/i/programByInstId/" + $("#institutionId").val(), "programId", null, null, function() {
+					getCombobox("/Academy/a/i/classessbyinst/" + $("#institutionId").val(), "semesterId", null, null, function() {
+						/*getCombobox('/Academy/a/i/getIsamarksmasterOnInstBase/' + $('#institutionId').val(), 'assesmentTypeId', null, null, function() {
+							
+						});*/
+						getCombobox("/Academy/a/i/getisamarktemplatebyInst/" + $("#institutionId").val(), "isaPatternId", "", "", function() {
+							
+					});
+					});	
+				});
+//			});
+		}
+	});	
+	
+//	On Change Of Institution.
+	$("#institutionId").change(function() {
+		var instId = $(this).val();
+		if(instId) {
+			getCombobox("/Academy/a/i/programByInstId/" + instId, "programId", null, null, function() { });
+			getCombobox("/Academy/a/i/classessbyinst/" + instId, "semesterId", null, null, function() { });	
+			getActiveClassByProgSemester();
+			getCombobox('/Academy/a/i/getIsamarksmasterOnInstBase/' + instId, 'assesmentTypeId', null, null, function() { });
+		}
+	});
+	
+	$("#batchClassId").change(function() {
+		getCombobox("/Academy/a/i/batchClassSections/" + $("#batchClassId").val(), "batchClassSecId");
+		getCombobox("/Academy/a/i/batchClassSubjects2/" + $("#batchClassId").val(), "batchClassSubId", "", "", function() {
+			$("#batchClassSubId option").prop("selected", true);
+		});
+	});
+	
+	$("#isaPatternId").change(function() {
+		getIsatemplateDetailsForIsaMarksEntry();
+		getCombobox("/Academy/a/i/isamarksmasterdetails/" + $("#isaPatternId").val(), "isaMasterId");
+	});
+	
+}
+
+function getIsatemplateDetailsForIsaMarksEntry() {
+	var formData = {
+		controllerMode : 9930,
+		actionType : 91,
+		isatemplateId:$('#isaPatternId').val(),
+		menuId:this.menuId,
+		type:1
+		};
+	
+	bgCurtain();
+	doAjaxCall('instituteApp', 'GET', formData, function(data) {
+		removeBgCurtain();
+		$("#isatemplatedetailsdata").html(data);
+	});
+}
+
+function getActiveClassByProgSemester() {
+	
+//	Initially Resetting.
+	$('#batchClassId').html('');
+	$('#batchClassId').val('');
+	$('#batchClassId option[value!=""]:first').prop("selected", false);
+
+	if( !$('#programId').val() || !$('#semesterId').val()) {
+		return false;
+	}
+	
+	getCombobox('/Academy/a/i/getactiveclassbyIPS/' + $("#institutionId").val() + "/" + $('#programId').val() + "/" + $('#semesterId').val(), 'batchClassId', null, null, function() {
+		$('#batchClassId option[value!=""]:first').prop("selected", true);
+		if($('#batchClassId').val()) {
+		getCombobox("/Academy/a/i/batchClassSections/" + $('#batchClassId').val(), "batchClassSecId");
+		getCombobox("/Academy/a/i/batchClassSubjects2/" + $('#batchClassId').val(), "batchClassSubId", "", "", function() {
+			$("#batchClassSubId option").prop("selected",true);
+		});
+		}
+	});
+}
+
+function getStudentsForIsaMarksAdmin(controllerMode, actionType) {
+	if(!($('#batchClassId').val() != null && $('#batchClassId').val().length > 0 &&
+			$('#batchClassSecId').val() != null && $('#batchClassSecId').val().length > 0 && 
+			$('#batchClassSubId').val() !=null && $('#batchClassSubId').val().length > 0 && 
+			$('#isaMasterId').val() != null && $('#isaMasterId').val().length > 0)) {
+		
+		showMessage("Please select Subject and Sections","error");
+		return;
+	}
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			cbsId:$('#batchClassSecId').val().toString(),
+			subjectId:$('#batchClassSubId').val().toString(),
+			isamarksmasterId:$('#isaMasterId').val(),
+			isatemplateId:$('#isaPatternId').val(),
+			menuId:this.menuId,
+			type:1
+			
+	};
+	bgCurtain();
+	
+	doAjaxCall('instituteApp', 'GET', formData, function(data) {
+		removeBgCurtain();
+		$("#studentDetails").html(data);
+	});
+}
+function getStudentsMarksSummary(controllerMode, actionType) {
+	if(!($('#batchClassSecId').val() != null && $('#batchClassSecId').val().length > 0 &&
+			$('#batchClassSubId').val() != null && $('#batchClassSubId').val().length > 0 )) {
+		
+		showMessage("Please select Subject and Sections","error");
+		return;
+	}
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			cbsId:$('#batchClassSecId').val().toString(),
+			subjectId:$('#batchClassSubId').val().toString(),
+			menuId:this.menuId,
+			type:1
+			
+	};
+	bgCurtain();
+	
+	doAjaxCall('instituteApp', 'GET', formData, function(data) {
+		removeBgCurtain();
+		$("#studentDetails").html(data);
+	});
+}
+
+function updateIsaScaleMarks(controllerMode, actionType){
+	if(!($('#batchClassSecId').val() != null && $('#batchClassSecId').val().length > 0 &&
+			$('#batchClassSubId').val() != null && $('#batchClassSubId').val().length > 0 )) {
+		
+		showMessage("Please select Subject and Sections","error");
+		return;
+	}else{
+		getConfirmDialog("Update ISA Scale Marks", "Do you want to Scale  down ISA marks ?", function(){
+			
+			var formData = {
+					controllerMode : controllerMode,
+					actionType : actionType,
+					cbsId:$('#batchClassSecId').val().toString(),
+					subjectId:$('#batchClassSubId').val().toString(),
+					menuId:this.menuId,
+					
+			};
+			
+				bgCurtain();
+				doAjaxCall(this.url,'POST',formData,function(data){
+					removeBgCurtain();
+					var dataArray = data.split("_")[1];
+					if (data.indexOf("SUCCESS") > -1) {
+					showMessage(dataArray,'success');
+					getStudentsMarksSummary(6001,8);
+					}else
+						showMessage(dataArray,'error');
+				});
+			});
+	}
+	
+}
+function validateISAMarksEntryAdmin() {
+	var that = this;
+	this.validateISAMarksEntryList = [];
+	$("[id^=marks_]").on('change',function() {
+		that.validateSingleISAMarksEntry = [];
+		var singleEntry = 1;
+		validateISAMarks(this, singleEntry);
+		saveSingleISAStudentsAdmin($("#controllerMode").val(),$("#actionTypeSaveSingle").val(),this);
+	});
+	$("#isaMaxMarks").on('change',function() {
+		var obj = {};
+		$("#isaMarksTable >tbody tr").each(function(i) {
+			$(this).children().each(function() {
+				var ctx = $(this).children('input[id^=marks_]');
+				if($(ctx).length > 0) {
+					var usn = $(ctx).attr('data-usn').trim();
+					setClaculatedScaledIsaMarks(ctx);
+					validateISAMarks(ctx,0);
+				}
+			})
+		});
+		savePasteAllISAStudentsAdmin($("#controllerMode").val(),$("#actionTypeSaveAll").val(), 0)
+	});
+}
+
+function saveSingleISAStudentsAdmin(controllerMode,actionType,context) {
+	
+	if(	parseInt($("#isCBTEnabled").val()) == 1)
+		return;
+	
+	if(this.validateSingleISAMarksEntry.length > 0) {
+		showMessage("Invalid input!");
+		return;
+	}
+	
+	var obj = {};
+	var arr = [];
+	if ($(context).length > 0) {
+		obj.roll = $(context).attr('data-roll');
+		obj.usn = $(context).attr('data-usn');
+		obj.uid = $(context).attr('data-uid');
+		obj.bcid = $(context).attr('data-bcid');
+		obj.cbsid = $(context).attr('data-cbsid');
+		obj.marks = $(context).val();
+		obj.coffmarks = $("#coff_" + $(context).attr("id")).val();
+	}
+	
+	$(context).removeAttr("style");
+	arr.push(obj);
+	
+	var formData = {
+		controllerMode : controllerMode,
+		actionType : actionType,
+		marks : JSON.stringify(arr),
+		menuId : this.menuId,
+		subjectId : $("#isamarksubjectId").val(),
+		isaMarksMasterId : $("#isaMarksMasterId").val(),
+		isaMaxMarks : $("#isaMaxMarks").val(),
+		isaScaledMarks : $("#isaScaledMarks").val(),
+		isaMarkssubidtype : $("#isaMarkssubidtype").val(),
+	}
+	
+	doAjaxCall(this.url,'POST',formData,function(data) {
+		var dataArray = data.split("_")[1];
+		if (data.indexOf("SUCCESS") > -1) {
+			showMessage(dataArray,'success');
+			updateIsaLasteUpdateDate();
+		} else
+			showMessage(dataArray,'error');
+	});
+}
+
+function savePasteAllISAStudentsAdmin(controllerMode,actionType,adminFacultyType){
+	
+	var that = this;
+	
+	if (parseInt($("#isCBTEnabled").val()) == 1)
+		return;
+
+	var formData = {
+		controllerMode : controllerMode,
+		actionType : actionType,
+		subjectId : $("#isamarksubjectId").val(),
+		isaMarksMasterId : $("#isaMarksMasterId").val(),
+		isaMaxMarks : $("#isaMaxMarks").val(),
+		isaScaledMarks : $("#isaScaledMarks").val(),
+		isaMarkssubidtype : $("#isaMarkssubidtype").val(),
+		marks : JSON.stringify(getISAMarksData()),
+		menuId : this.menuId
+	}
+	
+	bgCurtain();
+	doAjaxCall(that.url,'POST',formData,function(data) {
+		removeBgCurtain();
+		var dataArray = data.split("_")[1];
+		if (data.indexOf("SUCCESS") > -1) {
+			showMessage(dataArray,'success');
+			updateIsaLasteUpdateDate();
+		} else
+			showMessage(dataArray,'error');
+	});
+}
+
+function finalizeISAStudentsAdmin(controllerMode,actionType) {
+	
+	var that = this;
+	
+	if (this.validateISAMarksEntryList.length > 0) {
+		showMessage("Invalid input can't be finalized!");
+		return;
+	}
+	
+
+	var subject = $("#getStudentSubjectId option:selected").text(),
+ 	isaTemp = $("#getStudentISATempId option:selected").text();
+	getConfirmDialog("Save ISA Marks", "Do you want to finalize marks for Subject: <strong>" + subject + "</strong>; ISA: <strong>" + isaTemp + "</strong>?", function() {
+		
+		var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			isamarksmasterid : $("#isaMarksMasterId").val(),
+			menuId : this.menuId,
+			subjectId : $("#isamarksubjectId").val(),
+			students : $("#students").val()
+		}
+
+						
+		bgCurtain();
+		doAjaxCall(that.url, 'POST', formData, function(data) {
+			removeBgCurtain();
+			var dataArray = data.split("_")[1];
+			if (data.indexOf("SUCCESS") > -1) {
+				showMessage(dataArray, 'success');
+				getStudentsForIsaMarksAdmin(9930, 8);
+				updateIsaLasteUpdateDate();
+			} else
+				showMessage(dataArray, 'error');
+		});
+	});
+}
+
+function isaPasteAllAdmin(masterId) {
+	
+
+	if (masterId != parseInt($("#isaMarksMasterId").val())) {
+		showMessage("Select proper assessment type to paste all", "error");
+		return;
+	}
+	
+
+	this.isIsaPasteAll = false;
+	var that = this;
+	
+	var pasteDialog = '<div class="wrapper-modal-content-area-pad"><form class="form-horizontal">'+
+	'<div class="col-md-12"><fieldset class="grp_frmfld" style="padding-top: 15px;">'+
+	'<div class="form-group pastinblk"><label class="col-md-12 control-label" for="">Please paste the SRN and marks here </label>'+
+	'<p class="error"><strong>Quick Help:</strong> Please paste the values separated with comma(,) <br>ex:- <br>PES12017XXXXX, 20.3<br>01FB14ECSXXX, 20</p>'+
+	'<div class="col-md-12"><textarea class="form-control" autofocus id="pastedIsaMarks"></textarea></div>'+
+	'</div></fieldset></div></form></div>';
+	
+
+	var buttons = [ {
+		type : "button",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Paste",
+		className : "btn btn-sm btn-default",
+		callback : function(e) {
+			isaPasteValueAdmin();
+			that.isIsaPasteAll = true;
+		}
+	} ];
+
+	getModalDialog('medium', 'Paste All', pasteDialog, buttons, function() { });
+}
+
+function isaPasteValueAdmin() {
+	var val = $("#pastedIsaMarks").val();
+	if (val && val.length > 0)
+		var vals = val.split("\n");
+	else {
+		showMessage("No data provided.");
+		return false;
+	}
+
+	var obj = {};
+	for ( var i in vals) {
+		var t = vals[i].split(",");
+		obj[t[0].trim()] = t[1];
+	}
+
+	var that = this;
+	var isstudentexits = false;
+	
+
+	$("#isaMarksTable >tbody tr").each(function(i) {
+		$(this).children().each(function() {
+			var ctx = $(this).children('input[id^=marks_]');
+			if ($(ctx).length > 0) {
+				var usn = $(ctx).attr('data-usn').trim();
+				var val = obj[usn];
+				if (val) {
+					isstudentexits = true;
+					$(ctx).val(val.trim());
+				}
+				setClaculatedScaledIsaMarks(ctx);
+				validateISAMarks(ctx, 0);
+			}
+		})
+	});
+	
+	if (isstudentexits) {
+		savePasteAllISAStudentsAdmin($("#controllerMode").val(), $("#actionTypeSaveAll").val(), 0)
+	} else {
+		showMessage("Invalid Data !", "error");
+	}
+}
+
+function scaleIsaMarksAdmin() {
+	$("#isaMarksTable >tbody tr").each(function(i) {
+		$(this).children().each(function() {
+			var ctx = $(this).children('input[id^=marks_]');
+			if ($(ctx).length > 0) {
+				var usn = $(ctx).attr('data-usn').trim();
+				isstudentexits = true;
+				setClaculatedScaledIsaMarks(ctx);
+				validateISAMarks(ctx, 0);
+			}
+		})
+	});
+	if (isstudentexits) {
+		savePasteAllISAStudentsAdmin($("#controllerMode").val(), $("#actionTypeSaveAll").val(), 0)
+	} else {
+		showMessage("Invalid Data !", "error");
+	}
+}
+
+////////////////////////////////////////////////////Admin ISA Marks Entry : - End //////////////////////////////////////////////////////////
+
+
+////////////// vms code start by sharan /////////////////////
+var vmsRowCount=0;
+function addPreferenceRow(){
+	
+	$("#addVMSPrference").on("click",function(){
+		vmsRowCount=$('#vmsRowCount').val();
+		vmsRowCount=parseInt(vmsRowCount)+1;
+		$('#vmsRowCount').val(vmsRowCount);
+        var newRow = '<tr id="vmsRowCount_'+vmsRowCount+'" data-value="0" ><td><select  name="getInstId_'+vmsRowCount+'" onchange="getvmsPgm('+vmsRowCount+')" id="getInstId_'+vmsRowCount+'" data-name="getInstId" class="form-control" data-selected="1" required="required">'+$("#getInstId_1").html()+'</select></td>'
+        +'<td><select onchange="getbranchComboBox('+vmsRowCount+')" name="getProgramId_'+vmsRowCount+'" id="getProgramId_'+vmsRowCount+'" data-name="getProgramId" type="text"  class="form-control" required="required">'+$("#getProgramId_1").html()+'</select></td>'
+        +'<td><select  name="getBranchId_'+vmsRowCount+'" id="getBranchId_'+vmsRowCount+'" data-name="getBranchId" type="text"  class="form-control" required="required">'+$("#getBranchId_1").html()+'</select></td>'
+        +'<td><select  name="getQuotaId_'+vmsRowCount+'" id="getQuotaId_'+vmsRowCount+'" data-name="getQuotaId" type="text" class="form-control" required="required">'+$("#getQuotaId_1").html()+'</select></td>'
+        +'<td class="text-center" style="vertical-align: middle;"><a class="btn btn-default btn-xs outside-action-btn removeVmsPreference"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove</a></td></tr>';
+        
+        $("#vmsPrefernceList>tbody").append(newRow);
+        $("#getBranchId_"+vmsRowCount).empty();
+        $("#getQuotaId_"+vmsRowCount).empty();
+        //getProgramComboBox(vmsRowCount);
+        getUpdateComboBox(vmsRowCount);
+	});
+	
+	$(document).off("click",".removeVmsPreference");
+	$(document).on("click",".removeVmsPreference",function(){
+		 $(this).closest("tr").remove();
+		 vmsRowCount=vmsRowCount-1;
+		 $('#vmsRowCount').val(vmsRowCount);
+	});
+	
+}
+
+
+
+function getVmsData(){
+	var ret=[];
+	var obj={};
+	 $("#IsaMarksTemplateTbl>tbody tr").each(function(){
+		 obj={};
+		 $(this).children().each(function(){
+			 var c=$(this).children();
+			 if(!c.hasClass('removeIsaMarksTemplate')){
+			 if(c.hasClass('tmplname')){
+				 obj[c.attr('data-name')]=c.val().split("-")[0];
+				 obj['changed']=c.attr('changed');
+
+			 }else{
+				 obj[c.attr('data-name')]=c.val();
+			 }
+			 }
+		 });
+		 ret.push(obj);
+	 });
+	 return ret;
+}
+
+
+function updateVisitorDetail(){
+	var ListOfVMSData=[];
+	$("[id^=vmsRowCount_]").each(function() {
+		var rwCount = $(this).attr('id').split("_")[1];
+		var groupData={};
+		groupData.visitorPreferenceId=$('#vmsRowCount_'+rwCount).attr('data-value');
+		groupData.instId=$('#getInstId_'+rwCount).val();
+		groupData.programId=$('#getProgramId_'+rwCount).val();
+		groupData.branchId=$('#getBranchId_'+rwCount).val();
+		groupData.quotaId=$('#getQuotaId_'+rwCount).val();
+		ListOfVMSData.push(groupData);
+		
+	});
+
+	$('#listOfVMSData').val(JSON.stringify(ListOfVMSData));
+	
+	var formContext = $("#updateVisiotorDetails");
+	var controllerMode = 7670;
+	var actionType = 2;
+	var postData = formContext.serializeArray();
+	var formURL = formContext.attr("action");
+	var formData = new FormData(formContext[0]);
+	formData.append("menuId",this.menuId);
+	
+	bgCurtain();
+		doAjaxCall(formURL, 'POST', formData, function(data) {
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			if (status == "SUCCESS") {
+				showMessage(statusResp, "success");
+			}else{
+				showMessage(statusResp, "error");
+			}
+			removeBgCurtain();
+			},false,false);
+	
+}
+
+
+function allocateVMSTokenRooms(tokenDetailsId,applicantId,tokenStatus,roomNameId,type){
+	
+	var formData = {
+			controllerMode : 7670,
+			actionType : 186,
+			tokenDetailsId :  tokenDetailsId,
+			applicantId : applicantId,
+			tokenStatus:tokenStatus,
+			roomNameId:roomNameId,
+			type:type,
+			menuId : this.menuId,
+		};
+		
+		bgCurtain(); 	
+		doAjaxCall(this.url, 'POST', formData, function(data) {
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			removeBgCurtain();
+			if (status == "SUCCESS") {
+				showMessage(statusResp, "success");
+				getVisitorsDetailsBySearch();
+				updateTokenView(dataArray[2],dataArray[3]);
+			}else{
+				showMessage(statusResp, "error");
+			}
+		});
+	
+}
+function manageVmsAutoRefresh(){
+	$('#vmsautorefresh').on('click', function() {
+		if ($(this).is(':checked')) {
+			getVisitorsDetailsBySearch();	
+		}
+		
+	});
+}
+function handleVMSTokenStatusCallIn(tokenDetailsId,applicantId,tokenStatus,roomNameId,roomName){
+	
+	allocateVMSTokenRooms(tokenDetailsId,applicantId,tokenStatus,roomNameId,1);
+}
+
+
+
+function handleVMSTokenStatusTransfer(tokenDetailsId,applicantId,tokenStatus,roomNameId,roomName){
+	
+	allocateVMSTokenRooms(tokenDetailsId,applicantId,tokenStatus,roomNameId,2);
+}
+
+function handleVMSTokenStatusOnHold(tokenDetailsId,applicantId,tokenStatus,roomNameId,roomName){
+	
+	allocateVMSTokenRooms(tokenDetailsId,applicantId,tokenStatus,roomNameId,3);
+}
+
+/*function handleVMSTokenStatus(tokenDetailsId,applicantId,tokenStatus){
+	
+	var buttons = [{
+		type : "button",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Allocate Room",
+		className : "btn-sm btn-default",
+		callback : function(e) {
+			if($('#roomNameId').val()=="" || $('#roomNameId').val()==undefined || $('#roomNameId').val()==null)
+			{
+				showMessage("Please select room", "error");
+				return false;
+			}else{
+				getConfirmDialog("Token status ", "Do you want to allocate room?", function() {
+					allocateVMSTokenRooms(tokenDetailsId,applicantId,tokenStatus,$('#roomNameId').val(),1);
+					modalDialog.modal('hide');
+				});
+			}
+			
+			return false;
+		}
+	},{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+		className : "btn-sm btn-default",
+		callback : null
+	} ];
+	var data= '<div class="wrapper-modal-content-area-pad"><div class="form-horizontal"><div class="col-md-12">'
+        +'<label class="col-md-4 control-label" for="">Allocate Room </label>'
+        +'<div class="col-md-4"> <select id="roomNameId"  class="form-control" name="roomNameId"" data-selected="1"'
+       +'</select></div>'
+        +'</div></div></div>';
+	
+getModalDialog('medium', 'Allocate Room', data,buttons, function(){
+	getCombobox('/Academy/a/i/getTokenRooms/'+1,'roomNameId',null,null,function(data, selectedValue){
+		
+		
+	});
+	
+});
+}*/
+
+
+
+/*
+function transferVMSTokenStatus(tokenDetailsId,applicantId,tokenStatus){
+	
+	var buttons = [{
+		type : "button",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Transfer Room",
+		className : "btn-sm btn-default",
+		callback : function(e) {
+			if($('#roomNameId').val()=="" || $('#roomNameId').val()==undefined || $('#roomNameId').val()==null)
+			{
+				showMessage("Please select room", "error");
+				return false;
+			}else{
+				getConfirmDialog("Token status ", "Do you want to transfer to another room?", function() {
+					allocateVMSTokenRooms(tokenDetailsId,applicantId,tokenStatus,$('#roomNameId').val(),2);
+					modalDialog.modal('hide');
+				});
+			}
+			
+			return false;
+		}
+	},{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+		className : "btn-sm btn-default",
+		callback : null
+	} ];
+	var data= '<div class="wrapper-modal-content-area-pad"><div class="form-horizontal"><div class="col-md-12">'
+        +'<label class="col-md-4 control-label" for="">Allocate Room </label>'
+        +'<div class="col-md-4"> <select id="roomNameId"  class="form-control" name="roomNameId""'
+       +'</select></div>'
+        +'</div></div></div>';
+	
+getModalDialog('medium', 'Allocate Room', data,buttons, function(){
+	getCombobox('/Academy/a/i/getTokenRooms/'+1,'roomNameId',null,null,function(data, selectedValue){
+		
+		
+	});
+	
+});
+}*/
+
+//////////////vms code end by sharan /////////////////////
+//****************** ESA Report Status (By Vijay)********************//
+function esaReportStatus(controllerMode,actionType,seatingAloocationId,sessionDesc,buttonType,type)
+{
+	bgCurtain();
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			menuId : this.menuId,
+			esaId : $("#esaId").val(),
+			selectedData:$("#selectedData").val(),
+			sessionDesc:sessionDesc,
+			groupId:$("#groupId").val(),
+			seatingAloocationId:seatingAloocationId,
+			buttonType:buttonType,
+			type:type
+		};
+	var sessionDesc=sessionDesc.split("_");
+	sessionDesc=sessionDesc[0]+"-"+sessionDesc[1]+"-"+sessionDesc[2];
+	var buttons = [
+		{
+			type : "cancel",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+			className : "btn-sm btn-default",
+			callback : function() {
+				esaReportTimer = null;
+				clearTimeout(esaReportTimer);
+			}
+		} ];
+	doAjaxCall(this.url, 'get', formData, function(data) {
+		getModalDialog('large', "Report Downloading Status( "+sessionDesc+" )", data, buttons, function() {
+			$('[data-dismiss="modal"]').on("click", function(){
+				esaReportTimer = null;
+				clearTimeout(esaReportTimer);
+			});
+			esaRefreshReportStatus(seatingAloocationId,buttonType,type);
+		});
+		removeBgCurtain();
+});
+}
+function esaRefreshReportStatus(seatingAloocationId,buttonType,type)
+{
+	bgCurtain();
+	var formData = {
+			controllerMode : 370,
+			actionType : 191,
+			menuId : this.menuId,
+			seatingAloocationId:seatingAloocationId,
+			buttonType:buttonType,
+			type:type
+		};
+	doAjaxCall(this.url, 'get', formData, function(data) {
+		$('#statusData').html(data);
+		removeBgCurtain();
+		autoRefreshEsaSeatingReportStatus(seatingAloocationId,buttonType,type);
+	});
+}
+function showAllocatedUnAllocatedStudents(classId,programId,groupId,esaId,instId,esaAllocationId,totalStudentsCount,type)
+{
+	var filterId = $('#filterId').val();
+	filterId = parseInt(filterId);
+	var formData = {
+			controllerMode : 370,
+			actionType : 202,
+			classId : classId,
+			programId : programId,
+			groupId : groupId,
+			esaId : esaId,
+			instId : instId,
+			esaAllocationId : esaAllocationId,
+			totalStudentsCount : totalStudentsCount,
+			type : type,
+			menuId : this.menuId
+	};
+	bgCurtain();
+	doAjaxCall(this.url, 'get', formData, function(data) {
+		$('#showStudents').html(data);
+		if(filterId==2)
+		{
+			$('#regularStds').DataTable().rows(".3").remove().draw();
+			$('#backlogStds').DataTable().rows(".3").remove().draw();
+		}
+		else if(filterId==3)
+		{
+			$('#regularStds').DataTable().rows(".2").remove().draw();
+			$('#backlogStds').DataTable().rows(".2").remove().draw();
+		}
+		removeBgCurtain();
+	});
+}
+var esaReportTimer = null;
+function autoRefreshEsaSeatingReportStatus(seatingAloocationId,buttonType,type)
+{	
+	esaReportTimer = null;
+	clearTimeout(esaReportTimer);
+	var obj=displayReportStatus(buttonType,type);
+	var resp=false;
+	for (var x in obj){
+		if(!x.startsWith("NaN")){
+			var tempTotal=parseInt(obj[x].split("/")[1]);
+			var tempComplted=parseInt(obj[x].split("/")[0]);
+			if(buttonType==1){
+			if(tempComplted==0 || tempTotal!=tempComplted){
+				resp=true;
+			}
+			}else if(buttonType==2){
+				 tempTotal=parseInt(obj[type].split("/")[1]);
+				 tempComplted=parseInt(obj[type].split("/")[0]);
+				if(tempComplted==0 || tempTotal!=tempComplted){
+					resp=true;
+				}
+			}
+			document.getElementById('report'+x).innerHTML =obj[x];
+		}
+		
+	}
+	
+	if(resp && Object.keys(obj).length!=0){
+		startEsaReportTimer(seatingAloocationId,buttonType,type)
+	}else if(Object.keys(obj).length!=0){
+		var text="Reports are Available for download";
+		if(buttonType==2){
+			if(type==1){
+				text="Form B Reports are Available for download";
+			}else if(type==4){
+				text="Barcode Reports are Available for download";
+			}else if(type==6){
+				text="Seating Layout Reports are Available for download";
+			}
+			
+		}
+		showMessage(text, "success");
+	}
+		
+	 
+}
+
+function startEsaReportTimer(seatingAloocationId,buttonType,type) {
+	clearTimeout(esaReportTimer);
+	esaReportTimer = null;
+	esaReportTimer=setTimeout(function() {
+		esaRefreshReportStatus(seatingAloocationId,buttonType,type);
+	}, 10000);
+}
+
+function displayReportStatus(buttonType,type){
+	var total=0;
+	var compltd=0;
+	var print=false;
+	var obj={};
+	$('#esaResportStatusByType').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) { // Form-B
+		$(this.node()).children().each(function(){
+			total=0;
+			compltd=0;
+			var formType=parseInt($(this).find('span').attr('data-formType'));
+			 if(parseInt($(this).find('span').attr('data-countForms'))!=0){
+				compltd=compltd+1;
+			}
+			 total=total+1;
+			 if(obj.hasOwnProperty(formType)){
+				var tempTotal=parseInt(obj[formType].split("/")[1]);
+				var tempComplted=parseInt(obj[formType].split("/")[0]);
+				total=total+tempTotal;
+				compltd=compltd+tempComplted;
+			 }
+			 obj[formType]=compltd+'/'+total;
+			});
+			
+		});
+		
+	return obj;
+}
+//******************End ESA Report Status********************//
+
+
+/////////////////Visitor Token System///////////////
+function openSocket(instId){
+	 origrinaltitle=window.document.title;
+
+    // Ensures only one connection is open at a time
+    /*if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+       writeResponse("WebSocket is already opened.");
+        return;
+    }*/
+    // Create a new instance of the websocket
+   var  webSocket = new WebSocket(tokenwebsocketurl);
+     
+    /**
+     * Binds functions to the listeners for the websocket.
+     */
+    webSocket.onopen = function(event){
+        // For reasons I can't determine, onopen gets called twice
+        // and the first time event.data is undefined.
+        // Leave a comment if you know the answer.
+       /* if(event.data === undefined)
+            return;
+
+        writeResponse(event.data);*/
+    	 getTokenViewData("",instId,webSocket);
+    };
+
+    webSocket.onmessage = function(event){
+    	showResponse(event.data);
+    };
+
+    webSocket.onclose = function(event){
+        writeResponse("Connection closed");
+    };
+}
+function openSocketByAdmin(instId){
+	 origrinaltitle=window.document.title;
+
+    // Ensures only one connection is open at a time
+    /*if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+       writeResponse("WebSocket is already opened.");
+        return;
+    }*/
+    // Create a new instance of the websocket
+   var  webSocket = new WebSocket(tokenwebsocketurl+"/"+instId);
+     
+    /**
+     * Binds functions to the listeners for the websocket.
+     */
+    webSocket.onopen = function(event){
+        // For reasons I can't determine, onopen gets called twice
+        // and the first time event.data is undefined.
+        // Leave a comment if you know the answer.
+       /* if(event.data === undefined)
+            return;
+
+        writeResponse(event.data);*/
+    	// getTokenViewData("",instId,webSocket);
+    };
+
+    webSocket.onmessage = function(event){
+    	showResponse(event.data);
+    };
+
+    webSocket.onclose = function(event){
+        writeResponse("Connection closed");
+    };
+}
+/**
+ * Sends the value of the text input to the server
+ */
+function send(){
+    var text = document.getElementById("messageinput").value;
+    webSocket.send(text);
+}
+
+function closeSocket(){
+    webSocket.close();
+}
+function writeResponse(){
+
+}
+var tokenwebsocketurl=null;
+function updateTokenView(roomId,instId){
+	
+/*	 if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+    	getTokenViewData(roomId,webSocket);
+			playTokenAudio();
+
+	    }else{*/
+	    	
+	    	 var     webSocket = new WebSocket(tokenwebsocketurl+"/"+instId);
+	    	 webSocket.onopen = function(event){
+	    	        // For reasons I can't determine, onopen gets called twice
+	    	        // and the first time event.data is undefined.
+	    	        // Leave a comment if you know the answer.
+	    	      getTokenViewData(roomId,instId,webSocket);
+					playTokenAudio();
+
+	    	        
+	    	    };
+	   /* }
+   */
+   
+	
+}
+function updateTokenList(roomId,instId){
+	
+	/* if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+   	getTokenViewData(roomId,webSocket);
+
+	    }else{
+	    	
+	    	 var     webSocket = new WebSocket(tokenwebsocketurl+"/"+instId);
+	    	 webSocket.onopen = function(event){
+	    	        // For reasons I can't determine, onopen gets called twice
+	    	        // and the first time event.data is undefined.
+	    	        // Leave a comment if you know the answer.
+	    	        getTokenViewData(roomId,webSocket);
+	    	    };
+	    }*/
+  
+	 var     webSocket = new WebSocket(tokenwebsocketurl+"/"+instId);
+	 webSocket.onopen = function(event){
+	        // For reasons I can't determine, onopen gets called twice
+	        // and the first time event.data is undefined.
+	        // Leave a comment if you know the answer.
+	        getTokenViewData(roomId,instId,webSocket);
+	    };
+	
+}
+
+function getTokenViewData(roomId,instId,webSocket){
+	if(roomId=='' ||roomId==undefined){
+		roomId=null;
+	}
+	
+	
+	var url="/Academy/getTokenViewData/"+roomId+"/"+instId;
+	var formData = {
+			
+		};
+	$.ajax({
+		type : 'POST',
+		url : url,
+		data : formData,
+		success : function(data, xhr) {
+			 webSocket.send(data);
+		},
+		error : function(data) {
+			console.log('Error occured while inserting details');
+		}
+	});
+		}
+function showResponse(text){
+	var objlist =JSON.parse(text);
+	var tokenroomlist=objlist[0];
+	var tokenvisitorlist=objlist[1];
+	var qno=objlist[2];
+	var tokenroomId=objlist[3];
+	var noofvisitors=objlist[3];
+	updateVMSWindowName(qno);
+	var tokenroomlistdatacontent="";
+	
+	for(var i = 0; i < tokenroomlist.length; i++) {
+	    var obj = tokenroomlist[i];
+	    $("#tkrm_data_"+obj.TokenRoomId).html(clearUndefined(obj.Name));
+	   // tokenroomlistdatacontent+="<tr id=tkrm_"+obj.TokenRoomId+"><td>"+obj.RoomName+"</td><td>"+clearUndefined(obj.Name)+"</td></tr>"
+	}
+	//tokenroomlistdatacontent+="";
+	var tokenvisitorlistdatacontent="" ;
+if(tokenvisitorlist.length>0){
+	var countrows=0;
+	var visitorindex=0;
+var tabcount=0;
+for(var i = 0; i < tokenvisitorlist.length && i<14; i++) {
+	var obj = tokenvisitorlist[i];
+if(i==0){
+	tokenvisitorlistdatacontent=" <table class='tokensystm_qtable' cellspacing='0'>" +
+			"<tbody>";
+	
+	tokenvisitorlistdatacontent+="<tr><td><span class='badge'>"+(visitorindex+1)+"</span><span>"+clearUndefined(obj.Name)+"</span></td></tr>";
+	countrows++;
+	visitorindex++;
+}else if(countrows!=7){
+	
+	tokenvisitorlistdatacontent+="<tr><td><span class='badge'>"+(visitorindex+1)+"</span><span>"+clearUndefined(obj.Name)+"</span></td></tr>";
+	countrows++;
+	visitorindex++;
+
+}else if(countrows==7){
+	tokenvisitorlistdatacontent+"</tbody></table>";
+	tokenvisitorlistdatacontent+=" <table class='tokensystm_qtable' cellspacing='0'>" +
+	"<tbody>";
+	countrows=1;
+	
+
+tokenvisitorlistdatacontent+="<tr><td><span class='badge'>"+(visitorindex+1)+"</span><span>"+clearUndefined(obj.Name)+"</span></td></tr>";
+visitorindex++;
+	
+}
+
+	
+	
+/*var obj = tokenvisitorlist[i];
+tokenvisitorlistdatacontent+="<tr><td>"+clearUndefined(obj.Name)+"</td></tr>"
+console.log(obj);
+*/
+
+}
+tokenvisitorlistdatacontent+"</tbody></table>";
+
+}
+
+tokenvisitorlistdatacontent+="";
+	
+//$('#token_room_table').html(tokenroomlistdatacontent);
+$('#token_visitors').html(tokenvisitorlistdatacontent);
+$('#token_count').html(qno);
+
+$("#tkrm_"+tokenroomId).addClass("rowhighlight");
+setTimeout(function(){
+	$("#tkrm_"+tokenroomId).removeClass('rowhighlight');
+},30000);
+playTokenAudio();
+}
+function clearUndefined(data){
+	if(data==undefined){
+		return '';
+	}else{
+		return data;
+	}
+}
+function playTokenAudio() {
+	var x = document.getElementById("myAudio");
+	x.play();
+	}
+/////////////////Visitor Token System//////////////////////
+//----------------------------- remove esa backlog students -(by vijay)  ---------------------------------------//
+function removeBacklogStudents(loginId,subCode,esaBkStdId)
+{
+	var title='Remove Student : '+loginId;
+	var msg=" Do you want to remove student <b>"+loginId+"</b> with subject <b>"+subCode+"</b> information . Are you sure ?";
+	getConfirmDialog(title, msg, function() {
+		var formData = {
+			controllerMode : 370,
+			actionType : 195,
+			esaBcklogStdId : esaBkStdId,
+			menuId : this.menuId
+		};
+		bgCurtain();
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			if (status == "SUCCESS") {
+				showMessage(statusResp, "success");
+				$('#assignBacklogStudents').DataTable().row("#"+subCode).remove().draw();
+			} else if (status == "ERROR") {
+				showMessage(statusResp, "error");
+			}
+			removeBgCurtain();
+		});
+	});
+}
+//-----------------------------end remove esa backlog students -(by vijay)  ---------------------------------------//
+//******************Manage-QP_Pattern********************//
+function handleEsaQPPattern(esaQuestionPaperId,qpName)
+{
+	var formData = {
+			controllerMode : 370,
+			actionType : 196,
+			esaQuestionPaperId : esaQuestionPaperId,
+			menuId : this.menuId
+	};
+	bgCurtain();
+	doAjaxCall(this.url, 'POST', formData, function(data) {
+		//$('#qppatternDetails').html(data);
+		handleQpPattern(esaQuestionPaperId,qpName);
+		removeBgCurtain();
+	});
+}
+function handleQpPattern(esaQuestionPaperId,qpName)
+{
+	var esaId = $("#esaId").val();
+	var formData = {
+			controllerMode : 370,
+			actionType : 197,
+			esaId : $('#esaId').val(),
+			esaQuestionPaperId : esaQuestionPaperId,
+			menuId : this.menuId
+		}
+		var buttons = [	
+			{
+				type : "button",
+				label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true' id=''></span>Save",
+				className : "btn-sm btn-default",
+				callback : function(e) {
+					var totmarks=0;
+				    for(var i = 0; i < qpPtrnNodeLst.length; i++) {
+				    	if(qpPtrnNodeLst[i].parentId === '' && qpPtrnNodeLst[i].marks==0) {
+				    		showMessage("Marks Cannot be 0 for Question "+(i+1)+" ","error");
+				    		return false;
+				        }
+				        if(qpPtrnNodeLst[i].parentId === '') {
+				        	totmarks=totmarks+qpPtrnNodeLst[i].marks;
+				        }
+				    }
+				    if(parseInt(totmarks)>100)
+				    	{
+				    		showMessage("Total Marks should be 100","error");
+				    		return false;
+				    	}
+				    if(qpPtrnNodeLst.length==0)
+				    	return false;
+					saveEsaQPPattern(esaQuestionPaperId,qpPtrnNodeLst);		
+					return false;
+				}
+			},
+			{
+				type : "cancel",
+				label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+				className : "btn-sm btn-default",
+				callback : null
+			} ];
+	bgCurtain();
+	var title = " Question Paper Scheme : "+qpName;
+		doAjaxCall(this.url, 'POST', formData, function(data) {
+			getModalDialog('large', title, data, buttons, function() {
+				$('#qppatternDetails').html(data);
+				if(buttons.length==1)
+					{
+						$('[id^="questionMarks_"]').attr("disabled",true);
+						$('.qp_rem_question').remove();
+						$('.qp_new_question').remove();
+						$('.qp_new_questlevel').remove();
+					}
+				removeBgCurtain();
+			});
+			
+		});
+}
+//******************End Manage-QP_Pattern********************//
+//********************Qp-Pattern***************************//
+
+var qpPtrnNodeLst2 = [];
+var qpPtrnSingleNode2 = {};
+function getEsaQPPatternByQuestionId(esaQuestionPaperId)
+{
+	qpPtrnNodeLst2=[];
+	var formData = {
+			menuId:this.menuId,
+			esaQuestionPaperId:esaQuestionPaperId,
+		};
+		doAjaxCall('/Academy/a/getEsaQPPatternByQuestionId', 'GET', formData, function(data) {
+		if(data){
+			var esaJSON="";
+			esaJSON=JSON.parse(data);
+			for(var i=0;i<esaJSON.length;i++)
+			{
+				var j = esaJSON[i].questionId.split(".").length;
+				if(j==1) //parent question(level 0)
+				{
+					qpPtrnSingleNode2 = {
+		                    'Id': "question_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'parentId':'',
+		                    'qstncaption': esaJSON[i].questionId,
+		                    'qsnId': "questionMarks_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'marks': esaJSON[i].marks,
+		                    'desc': esaJSON[i].questionId
+		                	}
+		                	qpPtrnNodeLst2.push(qpPtrnSingleNode2);
+				}
+				else if(j==2) //sub question(level 1)
+				{
+					qpPtrnSingleNode2 = {
+		                    'Id': "question_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'parentId':"question_"+esaJSON[i].questionId.split(".")[0].replace(/\./g,"_"),
+		                    'qstncaption': esaJSON[i].questionId.split(".")[1],
+		                    'qsnId': "questionMarks_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'marks': esaJSON[i].marks,
+		                    'desc': esaJSON[i].questionId
+		                	}
+		                	qpPtrnNodeLst2.push(qpPtrnSingleNode2);
+				}
+				else if(j==3) //sun question(level 2)
+				{
+					qpPtrnSingleNode2 = {
+		                    'Id': "question_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'parentId':"question_"+(esaJSON[i].questionId.split(".")[0]+"_"+esaJSON[i].questionId.split(".")[1]).replace(/\./g,"_"),
+		                    'qstncaption': esaJSON[i].questionId.split(".")[2],
+		                    'qsnId': "questionMarks_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'marks': esaJSON[i].marks,
+		                    'desc': esaJSON[i].questionId
+		                	}
+		                	qpPtrnNodeLst2.push(qpPtrnSingleNode2);
+				}
+				else if(j==4) //sub question(level 3)
+				{
+					qpPtrnSingleNode2 = {
+		                    'Id': "question_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'parentId':"question_"+(esaJSON[i].questionId.split(".")[0]+"_"+esaJSON[i].questionId.split(".")[1]+"_"+esaJSON[i].questionId.split(".")[2]).replace(/\./g,"_"),
+		                    'qstncaption': esaJSON[i].questionId.split(".")[3],
+		                    'qsnId': "questionMarks_"+esaJSON[i].questionId.replace(/\./g,"_"),
+		                    'marks': esaJSON[i].marks,
+		                    'desc': esaJSON[i].questionId
+		                	}
+		                	qpPtrnNodeLst2.push(qpPtrnSingleNode2);
+				}
+			}
+			
+			qpPtrnNodeLst = qpPtrnNodeLst2;
+			renderQPPattrn();
+			previewQPPattrn();
+		} else {
+			renderQPPattrn();
+			previewQPPattrn();
+		}
+	});
+}
+//********************End Qp-Pattern**********************//
+
+
+//********************questionpaper pattern****************//
+
+function loadQPPreview() {
+    $('[id^=qpthumbnail_]').on('click', function (event) {
+        event.preventDefault();
+        var imgPath = $(this).attr('imgpath');
+        var lmkTargetId = $(this).prop('id');
+        var srcCurrIndex = $(this).index() + 1;
+        var eleNodeCont = $('.qpthumbnail').length;
+        loadESAQpImage(imgPath, srcCurrIndex, eleNodeCont);
+        toggleEsaQpImage(lmkTargetId, eleNodeCont);
+        markSelectedThumbnail(lmkTargetId);
+    });
+}
+
+
+function loadESAQpImage(imgUrl, currIndex, eleNodeCont) {
+    $('#esaQPPVhere').html('<img src="' + imgUrl + '" />');
+    $('#qp_page_info').html('<strong>Page ' + currIndex + ' of ' + eleNodeCont + '</strong>')
+}
+
+function toggleEsaQpImage(lmkTargetId, eleNodeCont) {
+    var currImgPath;
+    var srcCurrIndex;
+    $('#qp_page_prev').on('click', function () {
+        srcCurrIndex = $('#' + lmkTargetId).index() + 1;
+        if (srcCurrIndex <= 1) {
+            return false;
+        } else {
+            lmkTargetId = $('#' + lmkTargetId).prev('a').attr('id');
+            currImgPath = $('#' + lmkTargetId).attr('imgpath');
+            srcCurrIndex = $('#' + lmkTargetId).index() + 1;
+            loadESAQpImage(currImgPath, srcCurrIndex, eleNodeCont);
+            markSelectedThumbnail(lmkTargetId);
+            //$('#' + lmkTargetId).removeClass('selected');
+            //$('#' + lmkTargetId).prev('a').addClass('selected');
+        }
+    });
+
+    $('#qp_page_next').on('click', function () {
+        srcCurrIndex = $('#' + lmkTargetId).index() + 1;
+        if (srcCurrIndex >= eleNodeCont) {
+            return false;
+        } else {
+            lmkTargetId = $('#' + lmkTargetId).next('a').attr('id');
+            currImgPath = $('#' + lmkTargetId).attr('imgpath');
+            srcCurrIndex = $('#' + lmkTargetId).index() + 1;
+            loadESAQpImage(currImgPath, srcCurrIndex, eleNodeCont);
+            markSelectedThumbnail(lmkTargetId);
+        }
+    });
+}
+
+function markSelectedThumbnail(currTargetId) {
+    $('#' + currTargetId).closest('.qpthumbnail_wrapper').children('a').removeClass('selected');
+    $('#' + currTargetId).addClass('selected');
+}
+
+var qpPtrnNodeLst = [];
+var qpPtrnSingleNode = {};
+var alphainc = ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+var rmnsmallinc = ['', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+var rmnupprinc = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+
+
+function qp_scheme_func_init() {
+	//renderQPPattrn();
+	//previewQPPattrn();
+    $(document).on('click', '.qp_new_question', function () {
+        var qp_level = parseInt($(this).closest('ol').attr('qp-qlevel'));
+        var qp_number = parseInt($(this).closest('ol').children('.qp_indvlqstn_wrapper').length) + 1;
+        var qp_no_crrnt = numBasedOnLevel(qp_level, qp_number);
+        var qp_info = [];
+        var qp_numberlvl = "";
+        var qp_lvl = "",dynId, mrksId;
+        if ($(this).parents('.qp_indvlqstn_wrapper').length > 0) {
+            $(this).parents('.qp_indvlqstn_wrapper').each(function () {
+                qp_info.push($(this).attr('qp-caption'));
+            });
+            for (var i = qp_info.length; i >= 1; i--) {
+                qp_numberlvl += qp_info.pop() + ' . ';
+                
+            }
+           
+        }
+        
+        qp_lvl=qp_numberlvl.replace(/ /g,"");
+        qp_lvl=qp_lvl.replace(/\./g,"_");
+        qp_lvl += qp_no_crrnt;
+       
+        dynId= "question_"+qp_lvl;
+        mrksId= "questionMarks_"+qp_lvl;
+        var newQuestion = '<li class="qp_indvlqstn_wrapper" qp-multilevel="false" qp-lvl="' + qp_level + '" qp-qsnno="' + qp_number + '" qp-caption="' + qp_no_crrnt + '" id="'+dynId+'">' +
+            '<div class="qp_content">' +
+            '<span class="qp_description">Question ' + qp_numberlvl + ' ' + qp_no_crrnt + ' ) </span>' +
+            '<span class="qp_marks"><input type="text" class="marks_indvdul" value="0" id='+mrksId+' name="faculty" onmouseout="checkMarks()" required="required"></span>' +
+            '<span class="glyphicon glyphicon-remove qp_rem_question" aria-hidden="true"></span>' +
+            '</div>' +
+            '<span class="qp_new_questlevel">Add sub level question</span>' +
+            '</li>';
+        $(this).before(newQuestion);
+        calcMarksInputSum();
+        createNode();
+    });
+
+    $(document).on('click', '.qp_rem_question', function () {
+        var qp_level_crnt = parseInt($(this).closest('ol').attr('qp-qlevel'));
+        if (($(this).closest('ol').children('.qp_indvlqstn_wrapper').length) <= 1 && qp_level_crnt > 0) {
+            $(this).closest('ol').parent('li').attr('qp-multilevel', 'false');
+            $(this).closest('ol').siblings('.qp_content').find('input').removeAttr('disabled');
+            $(this).closest('ol').remove();
+        } else {
+            $(this).closest('li').remove();
+        }
+
+        reorderNodeList(qp_level_crnt);
+
+        //$('.qp_pattrn_wrapper[qp-qlevel="'+qp_level_crnt+'"]').children();
+
+        calcMarksInputSum();
+    });
+
+    $(document).on('click', '.qp_new_questlevel', function () {
+        var $this = $(this);
+        var clonePattrn;
+        var qp_level_crnt = parseInt($(this).closest('ol').attr('qp-qlevel')) + 1;
+        var qp_lnk_id = $this.closest('li').prop('id');
+        var qp_new_addlst = '<ol class="qp_pattrn_wrapper" qp-qlevel="' + qp_level_crnt + '">' +
+            '<li class="qp_new_question">' +
+            '<div class="qp_content">' +
+            '<span class="qp_description">Add New Question</span>' +
+            '</div>' +
+            '</li>' +
+            '</ol>';
+
+        //var prnt_cntnt_rplace ='<span class="qp_description">Multilevel Question</span>'+
+        //                     '<span class="qp_marks"><input type="text" class="marks_indvdul" value="0"></span>'+
+        //                     '<span class="glyphicon glyphicon-remove qp_rem_question" aria-hidden="true"></span>';
+        //$this.closest('li').find('.qp_content').html(prnt_cntnt_rplace);
+        //$this.closest('li').attr('qp-multilevel', 'true').find('input').attr('disabled', 'disabled');
+        $this.after(qp_new_addlst);
+        $this.next('.qp_pattrn_wrapper').find('.qp_new_question').trigger('click');
+        // $this.closest('ol').css({'counter-reset': 'li'});
+        // $this.closest('ol').find('.qp_indvlqstn_wrapper').css({'counter-increment': 'li'});
+        calcMarksInputSum();
+       // clonePattrn = $('.qp_pattrn_wrapper').eq(0).clone();
+       // $('.qp_pattrn_mn_wrapper').html(clonePattrn);
+        createNode();
+        renderQPPattrn();
+
+    });
+    $(document).on('click', '.qp_rem_questlevel', function () {
+        var $that = $(this);
+        var qp_level_curr = $that.closest('ol').attr('qp-qlevel');
+        var crnt_cntnt_rplace = '<span class="qp_description">Main Question - Level ' + qp_level_curr + '</span>' +
+            '<span class="qp_marks"><input type="text" class="marks_indvdul" value="0"></span>' +
+            '<span class="glyphicon glyphicon-remove qp_rem_question" aria-hidden="true"></span>';
+        $that.prev('ol').remove();
+        $that.closest('li').find('.qp_content').html(crnt_cntnt_rplace);
+        $that.closest('li').attr('qp-multilevel', 'false');
+        calcMarksInputSum();
+    });
+   /* $(document).on('change', '.marks_indvdul', function () {
+        var $input = $(this);
+        calcMarksInputSum();
+    });*/
+    $(document).on('keyup', '.marks_indvdul', function () {
+        var $input = $(this);
+        calcMarksInputSum();
+        createNode();
+    });
+    $('#qp_pattern_preview').on('click', function() {
+    previewQPPattrn();
+    });
+}
+
+function numBasedOnLevel(qp_level, qp_number) {
+    var curr_number = 0;
+    switch (qp_level) {
+        case 1:
+            curr_number = alphainc[qp_number];
+            break;
+        case 2:
+            curr_number = rmnsmallinc[qp_number];
+            break;
+        case 3:
+            curr_number = rmnupprinc[qp_number];
+            break;
+        default:
+            curr_number = qp_number;
+            break;
+    }
+    return curr_number;
+}
+
+function reorderNodeList(qp_crntlevel) {
+    for (var i = qp_crntlevel; i < 4; i++) {
+        if ($('.qp_pattrn_wrapper[qp-qlevel="' + i + '"]').children('.qp_indvlqstn_wrapper').length > 0) {
+            $('.qp_pattrn_wrapper[qp-qlevel="' + i + '"]').children('.qp_indvlqstn_wrapper').each(function () {
+                var qp_number_innr = parseInt($(this).index()) + 1;
+                var qp_no_innr_crrnt = numBasedOnLevel(i, qp_number_innr);
+                var qp_inr_info = [];
+                var qp_inr_numberlvl = "",dynId, mrksId;
+                var qp_lvl, dynId;
+                if ($(this).parents('.qp_indvlqstn_wrapper').length > 0) {
+                    $(this).parents('.qp_indvlqstn_wrapper').each(function () {
+                        qp_inr_info.push($(this).attr('qp-caption'));
+                    });
+                    for (var k = qp_inr_info.length; k >= 1; k--) {
+                        qp_inr_numberlvl += qp_inr_info.pop() + ' . ';
+                    }
+                }
+                qp_lvl=qp_inr_numberlvl.replace(/ /g,"");
+                qp_lvl=qp_lvl.replace(/\./g,"_");
+                qp_lvl += qp_no_innr_crrnt;
+               
+                dynId= "question_"+qp_lvl;
+                mrksId= "questionMarks_"+qp_lvl;
+                $(this).attr('qp-qsnno', qp_number_innr);
+                $(this).attr('qp-caption', qp_no_innr_crrnt);
+                $(this).children('.qp_content').find('.qp_description').html('Question ' + qp_inr_numberlvl + ' ' + qp_no_innr_crrnt + ' )');
+                $(this).attr('id', dynId);
+                $(this).find('input').attr('id', mrksId);
+            });
+        }
+    }
+    createNode();
+}
+
+function calcMarksInputSum() {
+    var elmsum = 0;
+    var tmpval;
+
+    for (var i = 3; i >= 0; i--) {
+        if ($('.qp_pattrn_wrapper[qp-qlevel="' + i + '"]').length > 0) {
+            $('.qp_pattrn_wrapper[qp-qlevel="' + i + '"]').each(function () {
+
+                if($(this).children('.qp_indvlqstn_wrapper').length > 0 ) {
+
+                    $(this).children('.qp_indvlqstn_wrapper').each(function() {
+
+                        tmpval = $(this).children('.qp_content').find('.marks_indvdul').val();
+                        elmsum += isNaN(parseFloat(tmpval))? 0 : parseFloat(tmpval);
+
+                    });
+
+                    if($(this).closest('ol').parent('li').length > 0) {
+                        $(this).closest('ol').siblings('.qp_content').find('input').val(elmsum);
+                    } else {
+                        $('.marks_total').val(elmsum);
+                    }
+
+                }                
+
+                elmsum = 0;
+            });
+            
+        }
+
+        elmsum = 0;
+    }
+
+
+
+    //$(document).find('.marks_indvdul').each(function () {
+    //    elmsum += parseInt($(this).val());
+    //    $('.marks_total').val(elmsum);
+    // });
+    //createNode();
+    var totmarks=0;
+    for(var i = 0; i < qpPtrnNodeLst.length; i++) {
+        if(qpPtrnNodeLst[i].parentId === '') {
+        	totmarks=totmarks+qpPtrnNodeLst[i].marks;
+        }
+    }
+    /*if(parseInt(totmarks)>100)
+    		showMessage("Total Marks should be 100","error");*/
+}
+
+function createNode() {
+
+    qpPtrnNodeLst = [];
+
+    var nodeId, nodeParentId, nodeQstnNo, nodeQstCaption, nodeQsnId, nodeMarks, nodeDesc;
+
+    for (var i = 0; i < 4; i++) {
+        if ($('.qp_pattrn_wrapper[qp-qlevel="' + i + '"]').children('.qp_indvlqstn_wrapper').length > 0) {
+            $('.qp_pattrn_wrapper[qp-qlevel="' + i + '"]').children('.qp_indvlqstn_wrapper').each(function () {
+
+                nodeId = $(this).attr('id');
+                nodeParentId = $(this).closest('ol').parent('li').length > 0 ? $(this).closest('ol').parent('li').attr('id') : '';
+               // nodeQstnNo = $(this).attr('qp-qsnno');
+                nodeQstCaption = $(this).attr('qp-caption');
+                nodeQsnId = $(this).children('.qp_content').find('input').attr('id');
+                nodeMarks = parseFloat($(this).children('.qp_content').find('input').val());
+                nodeDescRaw = $(this).children('.qp_content').find('.qp_description').text();
+                nodeDesc = trimDescription(nodeDescRaw);                
+
+                qpPtrnSingleNode = {
+                    'Id': nodeId,
+                    'parentId':nodeParentId,
+                 //   'qstnno': nodeQstnNo,
+                    'qstncaption': nodeQstCaption,
+                    'qsnId': nodeQsnId,
+                    'marks': nodeMarks,
+                    'desc': nodeDesc
+                }
+
+                qpPtrnNodeLst.push(qpPtrnSingleNode);
+
+            });
+        }
+    }
+    
+}
+
+
+function trimDescription(qstnDec) {
+    qstnDec = qstnDec.replace(/\)/g,"");
+    //qstnDec = qstnDec.replace(/\./g,"");
+    qstnDec = qstnDec.replace(/Question/g,"");
+    qstnDec = qstnDec.replace(/ /g,"");
+    return qstnDec;
+}
+
+function renderQPPattrn() {
+    var newQstnNode, newQstnLvl, $parentId, qstn_crnt_lvl, thisList;
+
+    $('.qp_pattrn_mn_wrapper').empty();
+
+    newQstnLvl = createNewSubLevel(0);
+    $(".qp_pattrn_mn_wrapper").append(newQstnLvl);
+
+    thisList = $(".qp_pattrn_mn_wrapper").children('ol');
+
+    if($.isEmptyObject(qpPtrnNodeLst)) {                
+        createAddNodeBtn(thisList);
+        createNodeTotalMarks(thisList);
+    } else {
+        for(var i = 0; i < qpPtrnNodeLst.length; i++) {
+            if(qpPtrnNodeLst[i].parentId === '') {
+                newQstnNode = createNewQuestion(qpPtrnNodeLst[i].Id, 0, qpPtrnNodeLst[i].qstncaption, qpPtrnNodeLst[i].qsnId, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                $('ol[qp-qlevel="0"]').append(newQstnNode);
+            } else {
+                $parentId = $('#' + qpPtrnNodeLst[i].parentId);
+                qstn_crnt_lvl = parseInt($($parentId).attr('qp-lvl')) + 1;
+                if($($parentId).children('ol').length > 0) {
+                    newQstnNode = createNewQuestion(qpPtrnNodeLst[i].Id, qstn_crnt_lvl, qpPtrnNodeLst[i].qstncaption, qpPtrnNodeLst[i].qsnId, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                    $($parentId).children('ol').append(newQstnNode);
+                } else {
+                    $($parentId).attr('qp-multilevel', 'true');
+                    //$($parentId).children('.qp_content').find('input').attr('disabled', 'disabled');                  
+                    newQstnLvl = createNewSubLevel(qstn_crnt_lvl);
+                    newQstnNode = createNewQuestion(qpPtrnNodeLst[i].Id, qstn_crnt_lvl, qpPtrnNodeLst[i].qstncaption, qpPtrnNodeLst[i].qsnId, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                    $($parentId).append(newQstnLvl);
+                    $($parentId).children('ol').append(newQstnNode);
+                }
+            }
+        }
+        
+        $('.qp_pattrn_wrapper').each(function() {
+            if($(this).children('qp_new_question').length <= 0) {
+                createAddNodeBtn($(this));
+            }
+        });
+
+        createNodeTotalMarks(thisList);
+    }
+
+}
+
+function createAddNodeBtn(targetList) {
+
+    var qp_new_addBtn = '<li class="qp_new_question">' +
+                '<div class="qp_content">' +
+                '<span class="qp_description"> Add New Question</span>' +
+                '</div>' +
+                '</li>';
+    $(targetList).append(qp_new_addBtn);
+
+    // if($(targetList).attr('qp-qlevel') == '0' && $(targetList).find('.qp_new_question').length <= 0 ) {
+    //     $(targetList).prepend(qp_new_addBtn);
+    // } else {
+    //     $(targetList).append(qp_new_addBtn);
+    // }
+}
+
+function createNodeTotalMarks(targetLst) {
+    var qp_markscount_node = '<li class="qp_marks_wrapper">' +
+                                '<div class="qp_content">' +
+                                    '<span class="qp_description">Total Marks</span>' +
+                                    '<span class="qp_marks">' +
+                                        '<input type="text" class="marks_total" value="0" disabled="disabled" />' +
+                                    '</span>' +
+                                '</div>' +
+                            '</li>' ;
+    $(targetLst).append(qp_markscount_node);  
+    calcMarksInputSum();                          
+}
+
+function createNewSubLevel(crntlvl) {
+    var qp_new_addLvl = '<ol class="qp_pattrn_wrapper" qp-qlevel="' + crntlvl + '"></ol>'; 
+    return qp_new_addLvl;
+}
+
+function createNewQuestion(nodeId, nodePtrnLvl,nodeQstnCaption, nodeQstnId, nodeQstnDesc, nodeQstnMarks) {
+    var newNodeQuestion = '<li class="qp_indvlqstn_wrapper" qp-multilevel="false" qp-lvl="' + nodePtrnLvl + '" qp-caption="' + nodeQstnCaption + '" id="'+nodeId+'">' +
+            '<div class="qp_content">' +
+            '<span class="qp_description">Question ' + nodeQstnDesc + ' ) </span>' +
+            '<span class="qp_marks"><input type="text" class="marks_indvdul" value="'+ nodeQstnMarks +'" id="'+nodeQstnId+'" onmouseout="checkMarks()" required="required"></span>' +
+            '<span class="glyphicon glyphicon-remove qp_rem_question" aria-hidden="true"></span>' +
+            '</div>' +
+            '<span class="qp_new_questlevel">Add sub level question</span>' +
+            '</li>';
+    return newNodeQuestion;
+
+    
+}
+
+function previewQPPattrn() {
+
+    var newList, newMarksnode, prevParentId, prevNodeId, qstnpr_crnt_lvl;
+    var qustionMarks = [];
+
+    var errorNoPreview = '<p class="text-center text-danger error">No pattern avilable to show, please create a New Pattern.</p>';
+
+    $('.qp_preview_wrapper').empty();
+
+    if($.isEmptyObject(qpPtrnNodeLst)) {
+        $('.qp_preview_wrapper').html(errorNoPreview);
+    } else {
+        //alert('NO CODE');
+        newList = qpPreviewNewLvl(0);
+        $('.qp_preview_wrapper').html(newList);
+        for(var i = 0; i < qpPtrnNodeLst.length; i++) {
+            prevNodeId = 'qpr_'+qpPtrnNodeLst[i].Id;
+            if(qpPtrnNodeLst[i].parentId === '') { 
+                                
+                qustionMarks.push(qpPtrnNodeLst[i].marks);
+                newMarksnode = qpPrewNewQstnNode(prevNodeId, 0, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                
+                $('ol[qpr-level="0"]').append(newMarksnode); 
+
+            } else {
+                prevParentId = 'qpr_'+qpPtrnNodeLst[i].parentId;
+                $parentSelector = $('#'+prevParentId);
+                qstnpr_crnt_lvl = parseInt($parentSelector.attr('qpr-level')) + 1;
+
+                if($parentSelector.children('ol').length > 0) {
+                    // newQstnNode = createNewQuestion(qpPtrnNodeLst[i].Id, qstn_crnt_lvl, qpPtrnNodeLst[i].qstnno, qpPtrnNodeLst[i].qstncaption, qpPtrnNodeLst[i].qsnId, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                    // $($parentId).children('ol').append(newQstnNode);
+
+                    newMarksnode = qpPrewNewQstnNode(prevNodeId, qstnpr_crnt_lvl, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);                
+                    $parentSelector.children('ol').append(newMarksnode);
+
+                } else {                                     
+                    // newQstnLvl = createNewSubLevel(qstnpr_crnt_lvl);
+                    // newQstnNode = createNewQuestion(qpPtrnNodeLst[i].Id, qstn_crnt_lvl, qpPtrnNodeLst[i].qstnno, qpPtrnNodeLst[i].qstncaption, qpPtrnNodeLst[i].qsnId, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                    // $($parentId).append(newQstnLvl);
+                    // $($parentId).children('ol').append(newQstnNode);
+
+                    newList = qpPreviewNewLvl(qstnpr_crnt_lvl);
+                    newMarksnode = qpPrewNewQstnNode(prevNodeId, qstnpr_crnt_lvl, qpPtrnNodeLst[i].desc, qpPtrnNodeLst[i].marks);
+                    $parentSelector.append(newList);
+                    $parentSelector.children('ol').append(newMarksnode);
+
+
+                }
+
+            }
+        }
+
+        qpPreFinalMarksNode(qustionMarks);
+    }
+    
+}
+
+function qpPreviewNewLvl(qstnlevel) {
+    var newPrQstnLvl = '<ol class="level'+qstnlevel+'" qpr-level="'+ qstnlevel +'"></ol>';
+    return newPrQstnLvl;
+}
+
+function qpPrewNewQstnNode(pQstnId, pQstnLevel, pQstntitle, pQstnMarks) {
+    var newPrQstnNode = '<li id="'+ pQstnId +'" qpr-level="'+ pQstnLevel +'">'+
+                        '<div class="iqp_wrapper">'+
+                        '<span class="pull-left">Question '+ pQstntitle +'</span>'+
+                        '<span class="pull-right">'+ pQstnMarks +' marks</span>'+
+                        '</div>'+
+                        '</li>';
+    return newPrQstnNode;
+}
+
+function qpPreFinalMarksNode(marks) {
+    var newttlmarksnode, marksCount = 0;
+    for(var k=0; k < marks.length; k++ ) {
+        marksCount += marks[k];
+    }
+
+    newttlmarksnode = '<li>'+
+                    '<div class="iqp_wrapper">'+
+                    '<span class="pull-left">'+
+                    '<strong>Total</strong>'+
+                    '</span>'+
+                    '<span class="pull-right">'+
+                    '<strong>' + marksCount + ' marks</strong>'+
+                    '</span>'+
+                    '</div>'+
+                    '</li>';
+    $('ol[qpr-level="0"]').append(newttlmarksnode);
+}
+
+function qp_unbind_element() {
+    $(document).off('click', '.qp_new_question');
+    $(document).off('click', '.qp_rem_question');
+    $(document).off('click', '.qp_new_questlevel');
+    $(document).off('click', '.qp_rem_questlevel');
+    $(document).off('click', '.marks_indvdul');
+}
+
+
+function saveEsaQPPattern(esaQuestionPaperId,qpPtrnNodeLst)
+{
+	bgCurtain();
+	var formData = {
+			controllerMode : 370,
+			actionType : 198,
+			val:JSON.stringify(qpPtrnNodeLst),
+			esaQuestionPaperId :esaQuestionPaperId,
+			menuId : this.menuId
+	}
+    		
+doAjaxCall(this.url, 'GET', formData, function(data) {
+	removeBgCurtain();
+	var dataArray = data.split("_");
+	var status = dataArray[0].toUpperCase();
+	var statusResp = dataArray[1];
+	if (status == "SUCCESS") {
+		showMessage(statusResp, "success");
+	}else{
+		showMessage(statusResp, "error");
+	}
+});			
+}
+
+
+//********************end questionpaper pattern****************//
+//************start show students for manage qp by vijay***************//
+function showManageAssignStudentsForESAQP(batchClassId,sectionId,subjectId,facultyId,subCode,instId)
+{
+	var title='ESA Students : '+subCode;
+	var formData = {
+			controllerMode : 370,
+			actionType : 204,
+			batchClassId : batchClassId,
+			sectionId : sectionId,
+			subjectId : subjectId,
+			facultyId : facultyId,
+			instId : instId,
+			esaId : $('#esaId').val(),
+			type : 1,
+			menuId : this.menuId
+	}
+	bgCurtain();	
+	var buttons = [
+		{
+			type : "cancel",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+			className : "btn-sm btn-default",
+			callback : null
+		} ];
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		getModalDialog('medium', title, data, buttons, function() {
+			removeBgCurtain();
+		});
+	});		
+}
+function showManageBacklogStudentsForESAQP(subId,instId,subCode)
+{
+	var title='ESA Backlog Students : '+subCode;
+	var formData = {
+			controllerMode : 370,
+			actionType : 204,
+			subjectId : subId,
+			instId : instId,
+			esaId : $('#esaId').val(),
+			type : 2,
+			menuId : this.menuId
+	}
+	bgCurtain();	
+	var buttons = [
+		{
+			type : "cancel",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+			className : "btn-sm btn-default",
+			callback : null
+		} ];
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		getModalDialog('medium', title, data, buttons, function() {
+			removeBgCurtain();
+		});
+	});		
+}
+//************end show students for manage qp by vijay***************//
+
+
+
+//************Start get ISA marks template for Asssign  yashodhar***************//
+
+//get faculty template Isamarkstemplate
+/*function getSectionsWithSubjectsSearchforIsamarkstemplates2(controllerMode,actionType,id,searchType){
+	if(!$("#batchClassId").val() || !$("#instIdSearch").val()){
+		showMessage("Please select all are required fields", "error");
+		return false;
+	}
+	 	bgCurtain();
+		var formData = {
+				menuId : this.menuId,
+				url : this.url,
+				controllerMode : controllerMode,
+				actionType : actionType,
+				batchClassId:$("#batchClassId").val(),
+				departmentId :$("#deptId").val(),
+				instId:$("#instIdSearch").val(),
+			};
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#showSectionWiseDiv').html('');
+		$('#showSectionWiseDiv').html(data);
+		getISAMarksTemplateDetailsBasedonId(1);
+		displayisamarkstemplateSubjectsSectionStatus();
+		removeBgCurtain();
+		});
+		
+	}
+*/
+
+function getSectionsWithSubjectsSearchforIsamarkstemplates(controllerMode,actionType,id,searchType){
+	if(!$("#batchClassId").val()){
+		showMessage("Please select all are required fields", "error");
+		return false;
+	}
+	 	bgCurtain();
+		var formData = {
+				menuId : this.menuId,
+				url : this.url,
+				controllerMode : controllerMode,
+				actionType : actionType,
+				batchClassId:$("#batchClassId").val(),
+				departmentId :$("#deptId").val(),
+				instId:$("#institutionId").val(),
+			};
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#showSectionWiseDiv').html('');
+		$('#showSectionWiseDiv').html(data);
+		$('#facultySubjectArraynew').val('');
+		getISAMarksTemplateDetailsBasedonId(1);
+		/*displayisamarkstemplateSubjectsSectionStatus();*/
+		removeBgCurtain();
+		});
+		
+	}
+
+
+function overrideCBTCheckBoxVal(id){
+    if(document.getElementById("overridecbt_"+id).checked==true){
+    	document.getElementById("overridecbt_"+id).value=1;
+    }
+    else{
+    	document.getElementById("overridecbt_"+id).value=0;
+    }
+}
+
+//save faculty template Isamarkstemplate
+function saveFacultySubjectIsaTamplate(cbsId){	
+	var obj = {};
+	var objArr = [];
+	var statusResp="Saved";
+	//var statusResperror="Some of Subjects not Upadated";
+	var statusResperror="Upadated Successfully ";
+	$("[id^=ISAMarksMasterId_]").each(function() {
+		obj = {};
+			var isa_id = $(this).attr('id');
+			obj.SubjectId = isa_id.split("_")[1];
+			obj.BatchClassId = isa_id.split("_")[2];
+			obj.IsaMarkstemplateid = this.value;
+			obj.OverrideCBT = document.getElementById("overridecbt_" +isa_id.split("_")[2]).value;
+			obj.CaseType = "TWO";
+		objArr.push(obj);
+	});
+	var data = JSON.stringify(objArr);
+	$('#facultyISASubjectArray').val(data);
+	
+	
+	var formData = {
+			controllerMode : 9931,
+			actionType : 3,
+			facultySubjectisatemplateArray : $('#facultyISASubjectArray').val(),
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#fsisamtemplatedetails').html(data);
+		
+	
+		if (data == "SUCCESS") {
+			showMessage(statusResp, "success");
+		}else{
+			showMessage(statusResperror, "success");
+		}
+	});
+	
+
+}
+
+
+//save faculty course
+function saveFacultyIsaTamplateBasedOnCourse(BatchClassIds){
+	
+	var obj = {};
+	var objArr = [];
+	var statusResp="Saved";
+	//var statusResperror="Some of Subjects not Upadated";
+	var statusResperror="Upadated Successfully ";
+	$("[id^=ISAMarksMasterIdSubjectWise_]").each(function() {
+		obj = {};
+			var isa_id = $(this).attr('id');
+			obj.SubjectId = isa_id.split("_")[1];
+			obj.BatchClassId = isa_id.split("_")[2];
+			obj.IsaMarkstemplateid = this.value;
+			obj.CaseType = "TWO";
+		objArr.push(obj);
+	});
+	var data = JSON.stringify(objArr);
+	$('#facultyISASubjectArray').val(data);
+	
+	
+	var formData = {
+			controllerMode : 9931,
+			actionType : 1,
+			facultySubjectisatemplateArray : $('#facultyISASubjectArray').val(),
+			facultySubjectArray : getFacultyAnchor(),
+			BatchClsId : BatchClassIds,
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#fsisamtemplatedetails').html(data);
+		
+	
+		if (data == "SUCCESS") {
+			showMessage(statusResp, "success");
+		}else{
+			//showMessage(statusResperror, "error");
+			showMessage(statusResp, "success");
+		}
+	});
+	
+
+}
+function getISAMarksTemplateDetailsBasedonId(){
+	if($('#selectIsaMarksMasterId').val()){
+		var formData = {
+				controllerMode : 9931,
+				actionType : 8,
+				ISAMarksTemplateId : $('#selectIsaMarksMasterId').val(),
+				menuId : this.menuId
+			};
+		
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+			$('#ShowIsaMarksTemplatedetails').html(data);
+
+		});
+	}
+	
+	
+	
+	
+}
+
+
+
+
+function getFacultyIsaTamplateBasedOnSections(id){
+	
+	var formData = {
+			controllerMode : 9931,
+			actionType : 8,
+			BatchClassId : id,
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#ShowIsaMarksTemplatedetails').html(data);
+
+	});
+	
+}
+
+
+function getFacultyISAMarksTemplateDetailsOnIdSection(ClassBatchSectionId){
+	
+	if(ClassBatchSectionId){
+	var formData = {
+			controllerMode : 9931,
+			actionType : 46,
+			classBatchSectionId : ClassBatchSectionId,
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#showFscultyISATemplateBasedOnSectionDiv').html(data);
+
+	});
+	}
+	
+	
+}
+
+
+function downloadFacultyISAMarksTemplateDetails(){
+	
+	if(!$("#batchClassId").val()){
+		showMessage("Please select all are required fields", "error");
+		return false;
+	}
+	
+	var url="/Academy/facultyISATemeplate/facultyISAMarksTemplateReport/"+$("#batchClassId").val()+"/"+$("#batchClassId option:selected").text().replace(/\./g,' ');
+	window.open(url,null);
+	/*window.location.href = "appAdmin/getISAResultsExtractScriptbasedOnAssessment/" + $("#batchClassId").val();*/
+	 
+}
+
+function facultySubjectsISAMArksAttachedEvents(){
+	$("[data-parent='sf']").on('input',function(){
+		var thisReq=$(this);
+		var enteredValue = $(thisReq).val();
+	    var currentDataList=$(thisReq).attr('list');
+	    var facultyValue="";
+	    var respVal=showDataList(enteredValue,currentDataList,$(thisReq).attr('id'));
+	    if(respVal){
+	    	enteredValue=respVal;
+	    }
+	   $('#'+currentDataList + ' option').filter(function() {
+		  			if($(this).val() === enteredValue && enteredValue){
+		  				facultyValue=$(this).attr('data-value');
+		  				$('#'+currentDataList).empty();
+		  				var idset="fsanchor_"+currentDataList.split("_")[1]+"_"+currentDataList.split("_")[2]+"_"+currentDataList.split("_")[3];
+		  				$('#'+idset).attr("f_id",facultyValue);
+
+		  				return facultyValue;
+		  		}
+	       });
+	/*if(facultyValue){*/
+		addOrRemoveFacultySubjectsISAMarksInArrys(facultyValue,currentDataList);
+	/*}*/
+	});
+
+}
+
+var objArrnew = [];
+function addOrRemoveFacultySubjectsISAMarksInArrys(value,currentDataList){
+	 if($("#facultySubjectArraynew").val())
+		 thisFacultySubjectsReq.facultySubjectsArray= JSON.parse($("#facultySubjectArraynew").val());
+	var splitId=currentDataList.split("_");
+	var objnew = {};
+	var isHistory=0;
+	if(value == "" || value == null){
+		isHistory=1;
+	}
+	objnew = {};
+		objnew.currentId = splitId[0];
+		objnew.currentBacthSectionId = splitId[2];
+		objnew.SubjectId = splitId[1];
+		objnew.UserID = value;
+		objnew.isHistory = isHistory;
+		objnew.isHistoryUserID =  splitId[3];
+		var bufferArray = [];
+		
+		if(objArrnew.length > 0){
+			bufferArray = objArrnew.filter(function(item,index){
+				if(item.SubjectId !== splitId[1]){
+					return item;
+				}
+			})
+		}
+		
+		bufferArray.push(objnew);
+		objArrnew = bufferArray;
+		
+
+		var data = JSON.stringify(objArrnew);
+		$('#facultySubjectArraynew').val(data);
+}
+
+
+/*function checkExistingFacultySubject(currentBacthSectionId,currentSubjectId){
+	var resp=false;
+	if (!isEmpty(facultySubJson)){
+		 modifiedFacultySubjectsArray = facultySubJson;
+	 if(modifiedFacultySubjectsArray.hasOwnProperty(currentBacthSectionId)){
+		 var modifiedSubjectsArray=modifiedFacultySubjectsArray[currentBacthSectionId];
+		 if(modifiedSubjectsArray.hasOwnProperty(SubjectId)){
+			var sArr= modifiedSubjectsArray[SubjectId];
+			 if(isExist(sArr,'sfAnchor') && isExist(sArr,'sfFaculty')){
+				 resp=true;
+			 }
+		 }
+		}
+	}
+	return resp;
+}*/
+//************end get ISA marks template for Asssign  yashodhar***************//
+
+//================================================================= Student Placement - Start =======================================================
+
+function studentPlacementForm() {
+
+//	Resume File Related.
+	document.getElementById('resumeFile').addEventListener('change', function () {
+		let files = document.getElementById('resumeFile').files;
+		let fileList = [];
+		let FileSize = this.files[0].size/1024/1024 	// In MB.
+        if (FileSize > 1) {
+        	showMessage("Resume should be less than 1 MB", "error");
+        	$(this).val('');
+        } else {
+        	for (var i = 0; f = files[i]; i++) {
+    			fileList.push(f);
+    		}
+    		fileList.forEach(function (file) {
+    			const ui = new UI();
+    			ui.addFileToUi(file, 'drop-files', false);
+    		})
+        }
+	})
+	
+	$('#btnUploadResume').on('click', function(e) {
+		e.preventDefault();
+		$('#resumeFile').trigger('click');		
+	});
+	 
+	function UI() { };
+	UI.prototype.addFileToUi = function(file, target, btnClose) {
+		let fileObjString;
+		pdffile_url = URL.createObjectURL(file);
+		if (target === undefined) {
+			alert('Target is mandatory');
+			return;
+		}
+		let uploadedFile = document.getElementById(target);
+		let ul = document.createElement('ul');
+		let li = document.createElement('li');
+		if (btnClose == undefined || btnClose == true) {
+			uploadedFile.innerHTML = `<a href="${pdffile_url}" target="_blank"> ${file.name}</a> <span><i class="fa fa-remove remove-pdf"></i></span>`;
+		} else {
+			uploadedFile.innerHTML = `<a href="${pdffile_url}" target="_blank"> ${file.name}</a>`;
+		}
+	}
+     
+//	Remove New File.
+	UI.prototype.removePdfNew = function (target, srcfileIndex) {
+		console.log(target);
+		if (target.classList.contains("remove-pdf")) {
+			target.parentElement.previousElementSibling.remove();
+			target.parentElement.remove();
+			document.getElementById("externalCertificate_New_" + srcfileIndex).value = null;
+		}
+	}
+	
+//	Remove Old File.
+	UI.prototype.removePdfOld = function (target, srcfileIndex) {
+		console.log(target);
+		if (target.classList.contains("remove-pdf")) {
+			target.parentElement.previousElementSibling.remove();
+			target.parentElement.remove();
+			document.getElementById("externalCertificate_Old_" + srcfileIndex).value = null;
+		}
+	}
+
+//	Change New File.
+	$(document).off('change', '[id^=externalCertificate_New]');
+	$(document).on('change', '[id^=externalCertificate_New]', function(e) {
+		e.preventDefault();		
+		let files = this.files[0];
+		let elemIndex = $(this).attr('id').split('_');
+		let FileSize = this.files[0].size/1024/1024 	// In MB.
+        if (FileSize > 1) {
+        	showMessage("File should be less than 1 MB", "error");
+        	$(this).val('');
+        } else {
+			const ui = new UI();
+			ui.addFileToUi(files, 'loadedCertificate_New_' + elemIndex[2], true);
+        }
+	});
+	
+//	Change Old File.
+	$(document).off('change', '[id^=externalCertificate_Old]');
+	$(document).on('change', '[id^=externalCertificate_Old]', function(e) {
+		e.preventDefault();
+		let files = this.files[0];
+		let elemIndex = $(this).attr('id').split('_');
+		let FileSize = this.files[0].size/1024/1024 	// In MB.
+        if (FileSize > 1) {
+        	showMessage("File should be less than 1 MB", "error");
+        	$(this).val('');
+        } else {
+			const ui = new UI();
+			ui.addFileToUi(files, 'loadedCertificate_Old_' + elemIndex[2], true);
+        }
+	});
+	
+//	Display New File.
+	$(document).off('click', '[id^=loadedCertificate_New_]');
+	$(document).on('click', '[id^=loadedCertificate_New_]', function(e) {
+		let elemIndex = $(this).attr('id').split('_');
+		const ui = new UI();
+		console.log(elemIndex[2]);
+		ui.removePdfNew(e.target, elemIndex[2]);
+	})
+	
+//	Display Old File.
+	$(document).off('click', '[id^=loadedCertificate_Old_]');
+	$(document).on('click', '[id^=loadedCertificate_Old_]', function(e) {
+		let elemIndex = $(this).attr('id').split('_');
+		const ui = new UI();
+		console.log(elemIndex[2]);
+		ui.removePdfOld(e.target, elemIndex[2]);
+	})
+	
+//	Only Number For CTC.
+	$(document).off('keypress keyup blur', '.allownumericwithoutdecimal');
+	$(document).on('keypress keyup blur', '.allownumericwithoutdecimal', function(e) {
+		validateCTC(this);
+	});
+}
+
+function validateCTC(thsVal) {
+	var ex = /^[0-9]+\.?[0-9]*$/;
+	if(ex.test(thsVal.value) == false) {
+		thsVal.value = thsVal.value.substring(0, thsVal.value.length - 1);
+	}
+	if(parseInt(thsVal.value) < 0 || parseInt(thsVal.value) > 200) {
+		thsVal.value = thsVal.value.substring(0, thsVal.value.length - 1);
+	}
+}
+
+// Save Or Update Placemenet Data.
+function saveOrUpdatePlacementInformation() {
+	$("#save-span-1").parent().attr("id","generic-save-id");
+	if (beforeSaveOrUpdatePlacementInformation()) {
+		placementJsonData();
+		bgCurtain();
+		$("[id^=save-span]").parent().addClass('disabled');
+		var formContext = $("#genericSave");
+		var controllerMode = parseInt($('#controllerMode').val());
+		var actionType = parseInt($('#actionType').val());
+		var id = 0;
+		var selectedData = 0;
+		var postData = formContext.serializeArray();
+		var formURL = formContext.attr("action");
+		var formData = new FormData(formContext[0]);
+		formData.append("menuId", this.menuId);
+		var that = this;
+		doAjaxCall(formURL, 'POST', formData, function(data) {
+			removeBgCurtain();
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			if (status == "SUCCESS") {
+				callBack = true;
+				showMessage(statusResp, "success");
+				$('a#menuTab_'+ menuId).click();
+			} else if (status == "ERROR") {
+				$("[id^=save-span]").parent().removeClass('disabled');
+				showMessage(statusResp, "error");
+			}
+		}, false, false);
+	}
+}
+
+function beforeSaveOrUpdatePlacementInformation() {
+	if (!$("#genericSave").valid()) {
+		showMessage("Select valid inputs", "error");
+		return false;
+	}
+	if(parseInt($('#placementInfoId').val()) == 0) {
+		if($('#resumeFile').val() == "" || $('#resumeFile').val() == '') {
+			showMessage("Please Upload Resume", "error");
+			removeBgCurtain();
+			return false;
+		}
+	}
+	var internshipDetails = $("#internshipAppliedTrue").val();
+	if(internshipDetails.length >= 250) {
+		showMessage("Internship details length should not be more then 250 characters", "error");
+		removeBgCurtain();
+		return false;
+	}
+	return true;
+}
+
+function placementJsonData() {
+
+	var obj;
+	var objArr;
+	
+	obj = {};
+	objArr = [];
+	$("[id^=placementProjectTitle_]").each(function() {
+		obj = {};
+		var projectTitleId = $(this).attr('id');
+		if(projectTitleId.split("_")[1] == "New") {
+			var proTitle = $("#placementProjectTitle_New_"+projectTitleId.split("_")[2]).val();
+			var proDetail = $("#placementProjectDetails_New_"+projectTitleId.split("_")[2]).val();
+			if(proTitle && proDetail) {
+				obj.id = 0;
+				obj.placementProjectTitle = $("#placementProjectTitle_New_"+projectTitleId.split("_")[2]).val();
+				obj.placementProjectDetail = $("#placementProjectDetails_New_"+projectTitleId.split("_")[2]).val();
+				objArr.push(obj);
+			}
+		} else {
+			obj.id = projectTitleId.split("_")[2];
+			obj.placementProjectTitle = $("#placementProjectTitle_Old_"+projectTitleId.split("_")[2]).val();
+			obj.placementProjectDetail = $("#placementProjectDetails_Old_"+projectTitleId.split("_")[2]).val();
+			objArr.push(obj);
+		}
+	});
+	var data = JSON.stringify(objArr);
+	$('#placementProjectDetailsData').val(data);
+	
+//	External Certificate New.
+	obj = {};
+	objArr = [];
+	$("[id^=PlacementExternalCertificateName_New]").each(function() {
+		obj = {};
+		obj.externlCertiNameNew = $("#"+$(this).attr('id')).val();
+		objArr.push(obj);
+	});
+	var data = JSON.stringify(objArr);
+	$('#placementExternalCertificateDataNew').val(data);
+	
+//	External Certificate Old.
+	obj = {};
+	objArr = [];
+	$("[id^=PlacementExternalCertificateName_Old]").each(function() {
+		obj = {};
+		var pec_old_id = $(this).attr('id');
+		obj.id = pec_old_id.split("_")[2];
+		obj.externlCertiNameOld = $("#"+$(this).attr('id')).val();
+		objArr.push(obj);
+	});
+	var data = JSON.stringify(objArr);
+	$('#placementExternalCertificateDataOld').val(data);
+	
+	obj = {};
+	objArr = [];
+	$("[id^=title_]").each(function() {
+		obj = {};
+		var pTec_title_id = $(this).attr('id');
+		if(pTec_title_id.split("_")[1] == "New") {
+			var pTitle = $("#title_New_"+pTec_title_id.split("_")[2]).val();
+			var pVersion = $("#version_New_"+pTec_title_id.split("_")[2]).val();
+			if(pTitle && pVersion) {
+				obj.id = 0;
+				obj.pTecTitle = $("#title_New_"+pTec_title_id.split("_")[2]).val();
+				obj.pTecVersion = $("#version_New_"+pTec_title_id.split("_")[2]).val();
+				objArr.push(obj);
+			}
+		} else {
+			obj.id = pTec_title_id.split("_")[2];
+			obj.pTecTitle = $("#title_Old_"+pTec_title_id.split("_")[2]).val();
+			obj.pTecVersion = $("#version_Old_"+pTec_title_id.split("_")[2]).val();
+			objArr.push(obj);
+		}
+	});
+	var data = JSON.stringify(objArr);
+	$('#placementTechnicalSkillData').val(data);
+	
+//	CompanyDetails
+	obj = {};
+	objArr = [];
+	$("[id^=companyName_]").each(function() {
+		obj = {};
+		var pComp_id = $(this).attr('id');
+		if(pComp_id.split("_")[1] == "New") {
+			var pCompName = $("#companyName_New_"+pComp_id.split("_")[2]).val();
+			var pCtc = $("#ctc_New_"+pComp_id.split("_")[2]).val();
+			var pTierLevl = $("#tierLevel_New_"+pComp_id.split("_")[2]).val();
+			if(pCompName && pCtc && pTierLevl) {
+				obj.id = 0;
+				obj.pCompName = $("#companyName_New_"+pComp_id.split("_")[2]).val();
+				obj.pCtc = $("#ctc_New_"+pComp_id.split("_")[2]).val();
+				obj.pTierLevl = $("#tierLevel_New_"+pComp_id.split("_")[2]).val();
+				objArr.push(obj);
+			}
+		} else {
+			obj.id = pComp_id.split("_")[2];
+			obj.pCompName = $("#companyName_Old_"+pComp_id.split("_")[2]).val();
+			obj.pCtc = $("#ctc_Old_"+pComp_id.split("_")[2]).val();
+			obj.pTierLevl = $("#tierLevel_Old_"+pComp_id.split("_")[2]).val();
+			objArr.push(obj);
+		}
+	});
+	var data = JSON.stringify(objArr);
+	$('#placementCompanyData').val(data);
+}
+
+////////////////////////////////////////////////////// Student Placement Report - Start //////////////////////////////////////////////////////////////
+//Search Operation.
+function geStudentPlacementBySearch() {
+
+	var branchId = $("#deptId").val().toString();
+	
+	var enablePin = 0;
+	var enterPinNumber=null;
+
+
+	if($('#enablePin').is(':checked')){
+		
+		enablePin = 1;
+		enterPinNumber = $("#enterPinNumber").val();
+	}
+	var includeSGPA = 0;
+
+	if($('#includeSGPA').is(':checked')){
+		includeSGPA = 1;
+	}
+	 
+	var eligibilityCriteria = null;
+	if($("#eligibilityCriteria").val()){
+		eligibilityCriteria = $("#eligibilityCriteria").val();
+	}
+	
+	var eligibility = null;;
+	if($("#eligibility").val()){
+		eligibility = $("#eligibility").val();
+	}
+//	includeSGPA,enterPin
+	if ($("input[name^='pinCode']:checkbox:not(:checked)")) {
+		var enterPin = $("#enterPin").val();
+	}
+
+	var formData = {
+		controllerMode : 7682,
+		actionType : 185,
+		BranchId : branchId,
+		enablePin:enablePin,
+		EnterPinNumber : enterPinNumber,
+		eligibilityCriteria : eligibilityCriteria,
+		Eligibility : eligibility,
+		includeSGPA:includeSGPA,
+		menuId : this.menuId
+	};
+	bgCurtain();
+
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#ShowStudentPlacementdetails').html(data);
+		removeBgCurtain();
+
+	});
+}
+
+//Export Excel.
+function getPlacementReportByExcelExport() {
+var branchId = $("#deptId").val().toString();
+	
+	var enablePin = 0;
+	var enterPinNumber = null;
+	if($('#enablePin').is(':checked')){
+		
+		enablePin = 1;
+		if($("#enterPinNumber").val()){
+			enterPinNumber = $("#enterPinNumber").val();
+		}
+	}
+	var includeSGPA = 0;
+
+	if($('#includeSGPA').is(':checked')){
+		includeSGPA = 1;
+	}
+	var eligibilityCriteria = null;
+	if($("#eligibilityCriteria").val()){
+		eligibilityCriteria = $("#eligibilityCriteria").val();
+	}
+	
+	var eligibility = null;;
+	if($("#eligibility").val()){
+		eligibility = $("#eligibility").val();
+	}
+	
+//	includeSGPA,enterPin
+	
+	
+	var url="";
+	url+="reports/Reports/gePlacementReportByExcelExport/"+branchId+"/"+enterPinNumber+"/"+eligibilityCriteria+"/"+eligibility+"/"+enablePin+"/"+includeSGPA+"";
+	var w = window.open(url,null);
+}
+//================================================================= Student Placement - End =========================================================
+
+//////////VMS Window Title Changes Start/////////////
+
+var mywindowinterval=null;
+var origrinaltitle=null;
+
+function updateVMSWindowName(count){
+	var message = "In  Queue: "+count;
+	//focusWindow();
+	  clearInterval(mywindowinterval);
+	  if(count!=null && count>0){
+		  
+		  window.document.title=origrinaltitle;
+	  mywindowinterval= setInterval(function(){
+			window.document.title =(window.document.title == origrinaltitle) ? message : origrinaltitle;
+	  },300);
+	  notifyVMSDesktop(count);
+	  }  
+}
+function notifyVMSDesktop(count) {
+	  if (Notification.permission !== "granted")
+	    Notification.requestPermission();
+	  else {
+	    var notification = new Notification('PESUACADEMY', {
+	      icon: 'https://pesuacademy.com/Academy/images/pesu-logo-big.png',
+	      body: "Vistor Arrived . In Queue : "+count,
+	    });
+
+	    notification.onclick = function () {
+	      window.open("");      
+	    };
+
+	  }
+
+	}
+
+
+////////// VMS Window Title Changes End/////////
+
+
+/////////////// VMS Receip Report///////////
+//
+//function getReceiptReport(actionType, controllerMode, selectedData) {
+//	
+//	var formData = {
+//		controllerMode : controllerMode,
+//		actionType : actionType,
+//		menuId : this.menuId
+//	};
+//	
+//	var buttons = [
+//		{
+//			type : "button1",
+//			label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true' id='downloadReceiptReport'></span>Download",
+//			className : "btn-sm btn-default",
+//			callback : function(e) {
+//			
+//				return false;
+//			}
+//		},
+//	
+//		{
+//			type : "cancel",
+//			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+//			className : "btn-sm btn-default",
+//			callback : null
+//		} ];
+//	
+//	bgCurtain();
+//	doAjaxCall(this.url, 'GET', formData, function(data) {
+//		getModalDialog('large',	"Receipt Report", data, buttons, function() { });
+//		removeBgCurtain();
+//		
+//	});
+//}
+///////////////End VMS Receip Report///////////
+
+//=======================================VisitorManagement Receipt Report Start=============================================
+function getReceiptReport(actionType, controllerMode, selectedData) {
+	
+	var formData = {
+		controllerMode : controllerMode,
+		actionType : actionType,
+		menuId : this.menuId
+	};
+	
+	var buttons = [
+		{
+			type : "button1",
+			label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true' id='downloadReceiptReport'></span>Download",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+		       getReportByExcel();
+				return false;
+			}
+		},
+	
+		{
+			type : "cancel",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+			className : "btn-sm btn-default",
+			callback : null
+		} ];
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		getModalDialog('large',	"Receipt Report", data, buttons, function() { });
+		removeBgCurtain();
+		
+	});
+}
+
+function getReportByExcel() {
+	
+	var endDate = 0;
+	var startDate = 0;
+	
+	if ($('#endDate').val().length != 0) {
+		endDate = $('#endDate').val();
+	}
+	if ($('#startDate').val().length != 0) {
+		startDate = $('#startDate').val();
+	}
+	
+	var url = "reports/Reports/getVMSReceiptReport/"+$('#consolidated').val()+"/"+$('#userId').val()+"/"+startDate+"/"+endDate+"";
+	var w = window.open(url, null);
+}
+
+/*$(document).on('click', '#menuTab_9928', function() {
+	var url = "https://forum.pesu.io";
+	var w = window.open(url, null);
+});*/
+//=======================================VisitorManagement Receipt Report End=============================================
+
+
+//save faculty template Isamarkstemplate basedon Class Batchsectionwise
+function saveFacultySubjectIsaTamplateclassBatchsecwise(cbsId){	
+	var obj = {};
+	var objArr = [];
+	var statusResp="Saved";
+	//var statusResperror="Some of Subjects not Upadated";
+	var statusResperror="Upadated Successfully ";
+	$("[id^=ISATempalteClassBatchsecwise_]").each(function() {
+		obj = {};
+			var isa_id = $(this).attr('id');
+			obj.SubjectId = isa_id.split("_")[1];
+			obj.BatchClassId = isa_id.split("_")[2];
+			obj.IsaMarkstemplateid = this.value;
+			obj.OverrideCBT = document.getElementById("overridecbt_" +isa_id.split("_")[2]).value;
+			obj.CaseType = "TWO";
+		objArr.push(obj);
+	});
+	var data = JSON.stringify(objArr);
+	$('#facultyISASubjectArray').val(data);
+	
+	
+	var formData = {
+			controllerMode : 9931,
+			actionType : 3,
+			facultySubjectisatemplateArray : $('#facultyISASubjectArray').val(),
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#fsisamtemplatedetails').html(data);
+		
+	
+		if (data == "SUCCESS") {
+			showMessage(statusResp, "success");
+		}else{
+			showMessage(statusResperror, "success");
+		}
+	});
+	
+
+}
+
+function getFacultyAnchor(){
+	
+	var data=[];
+	var obj={};
+	$("[id^=fsanchor_]").each(function() {
+		obj={};
+		obj.sub_id=$(this).attr("s_id");
+		obj.bc_id=$(this).attr("bc_id");
+		obj.fs_id=$(this).attr("fs_id");
+		obj.f_id=$(this).attr("f_id");
+		data.push(obj);
+
+	});
+return JSON.stringify(data);
+		
+	
+}
+
+// ///////////////////////////////////////////////////////// Admission Finance Report By Excel : - Start /////////////////////////////////////////////
+function getAdmissionFinanceReciptReport(actionType, controllerMode, selectedData) {
+	
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			menuId : this.menuId
+	};
+	
+	var buttons = [{
+		type : "button1",
+		label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true' id='downloadReceiptReport'></span>Download",
+		className : "btn-sm btn-default",
+		callback : function(e) {
+			getAdmissionFinceReportByExcel();
+			return false;
+		}
+	},
+	{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+		className : "btn-sm btn-default",
+		callback : null
+	} ];
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		getModalDialog('large',	"Receipt Report", data, buttons, function() { });
+		removeBgCurtain();
+	});
+}
+
+function getAdmissionFinceReportByExcel() {
+	
+	var endDate = 0;
+	var startDate = 0;
+	var byUser = $('#byUser').val();
+	
+	if ($('#endDate').val().length != 0) {
+		endDate = $('#endDate').val();
+	}
+	if ($('#startDate').val().length != 0) {
+		startDate = $('#startDate').val();
+	}
+	
+	var url = "reports/Reports/financeReciptReport/"+byUser+"/"+startDate+"/"+endDate+"";
+	var w = window.open(url, null);
+}
+// ///////////////////////////////////////////////////////// Admission Finance Report By Excel : - End ///////////////////////////////////////////////
+
+// Generaet Report.
+function generateReport(controlerMode, actionType, manageDataId, selectedData) {
+	
+	var formData = {
+			controllerMode : controlerMode,
+			actionType : actionType,
+			menuId : this.menuId,
+			selectedData : selectedData,
+			manageDataId : manageDataId
+	};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		showMessage("Reports are generating", "success");
+	});
+}
+
+function downloadGenReportFrBulkReceipts(entityId) {
+	var url = "reports/Reports/downloadGeneratedReportForBulkReceipts/" + entityId;
+	var w = window.open(url, null);
+}
+
+function getGenerateFinanceReciptReport(actionType, controllerMode, selectedData) {
+	
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			menuId : this.menuId
+	};
+	
+	var buttons = [{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+		className : "btn-sm btn-default",
+		callback : null
+	}];
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		getModalDialog('large',	"Invoice Report", data, buttons, function() { });
+		removeBgCurtain();
+	});
+}
+
+
+
+//By yashodhar
+function ISAResultsAndSeatingPreview() {
+	
+	 if($("#assessments").val()!== null &&  $("#assessments").val()!== "" && $("#IsaAndSeatingType").val()!== null &&  $("#IsaAndSeatingType").val()!== "" ){
+	 	
+		 
+		 var getInstitutes=$("#getInstitutes").val();
+		 var IsaAndSeatingType=$("#IsaAndSeatingType").val(); 
+	 	 var assessments=$("#assessments").val();
+	 
+	 	var formData = {
+				controllerMode : 7681,
+				actionType : 3,
+				AssessmentId : assessments,
+				getInstitutes : getInstitutes,
+				Type : IsaAndSeatingType,
+				menuId : this.menuId
+			};
+	 	bgCurtain();
+		doAjaxCall('admissionsApp', 'GET', formData, function(data) {
+			$('#ISAResultsMasrksList').html(data)
+			removeBgCurtain();
+		});
+	 	
+	 }else{
+		 showMessage("Please select  Assessments,Type", "error");
+	 }
+	
+	}
+
+
+function getFinanceReceiptBySearch() {
+
+	var formData = {
+		controllerMode : 5140,
+		actionType : 190,
+		menuId : this.menuId,
+		endDate : $('#endDate').val(),
+		startDate : $('#startDate').val()
+	};
+	
+	bgCurtain();
+	doAjaxCall('admissionsApp', 'GET', formData, function(data) {
+		$('#SelectedDataByFilter').html(data);
+		removeBgCurtain();
+	});
+}
+// ///////Placement Cycle Start////////////
+
+function handleAddPlacementCycle(controllerMode,actionType,id,selectedname)
+{
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			id:id,
+			name:selectedname,
+			menuId : this.menuId
+		};
+	bgCurtain();
+	doAjaxCall('instituteApp', 'GET', formData, function(data) {
+		$("#adminContent").html(data);
+		removeBgCurtain();
+	});
+}
+
+
+// //////////////Placement Cycle End///////////
+
+
+function cancelAddPlacmentCycle(menuId){
+	$("#menuTab_" + menuId).trigger("click");
+
+}
+
+function  manageAddPlacemtCycleCombo(){
+	
+	$("#eDate").on('change',function ()  {
+	    var startDate = document.getElementById("sDate").value;
+	    var endDate = document.getElementById("eDate").value;
+
+	    if ((Date.parse(startDate) > Date.parse(endDate))) {
+	    	showMessage("End Date should be greater than  Start Date",'error');
+	        
+	    }
+	});	
+	
+	
+	
+	if($('#placementCycleId').val()!=0){
+		if($('#searchStateInstId').val()){
+			var instIds = $('#searchStateInstId').val().split(",");
+			instIds.forEach(function(entry){
+				var tmp = {
+						id : 'checkcomboid_'+entry,
+						value : entry,
+						label : entry,
+						currentIdComBoId:'instId'
+					}
+				checkComboValues['checkcomboid_'+entry] = tmp;
+			});
+		}
+	}
+	getCheckCombobox("/Academy/a/i/getInstitutesCheckBox/1", "instId-searchStateInstId");
+	getCombobox('/Academy/a/i/getmasterCombo/2', 'type');
+	setDateTimePicker();
+}
+function  savePlacmentCycle(controllerMode,actionType,id,selectedname){
+	var that=this;
+	if (!$("#genericSave").valid() || that.formErrorList.length>0)
+		return false;
+	
+    var startDate = document.getElementById("sDate").value;
+    var endDate = document.getElementById("eDate").value;
+
+    if ((Date.parse(startDate) > Date.parse(endDate))) {
+    	showMessage("End Date should be greater than  Start Date",'error');
+    	return false;
+    }
+	
+
+	var formData = {
+			controllerMode : 9933,
+			actionType : 3,
+			id : 0,
+			selectedData : selectedData,
+			menuId : this.menuId
+		};
+	var obj = getDialogMessage(controllerMode, actionType, id, selectedData);
+	if(beforeGenericSave(formData,obj,0,"#genericSave")){
+		obj.callBack=true;
+	 handleGenericSave(formData,obj,0);
+	 
+	}
+
+}
+function managePCRCheckComboBox(programsemeter){
+	
+	$("#eDate").on('change',function ()  {
+	    var startDate = document.getElementById("sDate").value;
+	    var endDate = document.getElementById("eDate").value;
+
+	    if ((Date.parse(startDate) > Date.parse(endDate))) {
+	    	showMessage("End Date should be greater than  Start Date",'error');
+	        
+	    }
+	});	
+	
+	setDateTimePicker();
+	   for (var i = 0; i<programsemeter.length; i++) {  
+		   $("#ipcDataId_"+programsemeter[i].InstId+"_"+programsemeter[i].ProgramId).val( programsemeter[i].ClassId);
+		   $("#ipcUlId_"+programsemeter[i].InstId+"_"+programsemeter[i].ProgramId).attr("data-selected", programsemeter[i].ClassId);
+		   checkSelctedCombo("ipcUlId_"+programsemeter[i].InstId+"_"+programsemeter[i].ProgramId+"-ipcDataId_"+programsemeter[i].InstId+"_"+programsemeter[i].ProgramId
+				   +"-selectedCheck_"+programsemeter[i].InstId+"_"+programsemeter[i].ProgramId);
+	   }
+	   
+	$('[id^=ipcDataId_]').each(function() {
+		var id= $(this).attr("id");
+		var ulId = id.replace("ipcDataId", "ipcUlId");
+		
+		var selectedCheckId = id.replace("ipcDataId", "selectedCheck");
+		attachCheckComboEvent(ulId+"-"+id+"-"+selectedCheckId);
+	});
+	//
+}
+
+function checkSelctedCombo(comboName){
+	var ids=comboName.split("-");
+	var selVal = $('#' + ids[0]).attr("data-selected");
+	if(!selVal)
+		selVal=$('#' + ids[0]).val();
+	if(selVal && selVal.length>0){
+		selVal=selVal.split(",");
+		
+		var selectedCheckId='selectedCheck';
+		if(ids.length>2){
+			selectedCheckId=ids[2];
+		}
+		
+	for(var i in selVal){
+		$('#' + ids[0] + '>li a').each(function() {
+			var currentCheckbox = $(this).children().eq(0);
+
+			if (selVal[i]==$(currentCheckbox).val()){
+				$(currentCheckbox).attr("checked","checked");
+				$("#"+selectedCheckId).append($(this).parent().text()+",");
+				var obj = {
+						id : $(currentCheckbox).attr('id'),
+						value : $(currentCheckbox).attr('value'),
+						label : $(this).parent().text(),
+						currentIdComBoId:ids[0]
+					}
+					checkComboValues[obj.id] = obj;
+				return false;
+			}
+		});
+	}
+	}
+}
+
+function getPCRProgramSemester(){
+	var objArr=[];
+	var obj={};
+	$('[id^=ipcDataId_]').each(function() {
+		var id= $(this).attr("id");
+		var ids=id.split("_");
+		var instId=ids[1];
+		var progId=ids[2];
+		var datavalues=$(this).val().split(",");
+		for ( var i in datavalues) {
+			
+			if(datavalues[i]!=""){
+				obj={};
+				obj.instId=instId;
+				obj.progId=progId;
+				obj.clsId=datavalues[i];
+				objArr.push(obj);
+			}
+			
+		}
+		
+	});
+	
+return 	JSON.stringify(objArr);
+}
+
+function savePlacementCycleRegistration(controllerMode,actionType){
+	var that=this;
+	if (!$("#genericSave").valid() || that.formErrorList.length>0)
+		return false;
+	
+	
+	var startDate = document.getElementById("sDate").value;
+    var endDate = document.getElementById("eDate").value;
+
+    if ((Date.parse(startDate) > Date.parse(endDate))) {
+    	showMessage("End Date should be greater than  Start Date",'error');
+    	return false;
+    }
+    
+	$("[id^=save-span]").parent().prop('disabled', true);
+	
+	
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			pcId : $('#pcId').val(),
+			pcrId:$('#pcrId').val(),
+			startDate: $('#startDate').val(),
+			endDate: $('#endDate').val(),
+			programsemester : getPCRProgramSemester(),
+			menuId : this.menuId
+		};
+	bgCurtain();
+	doAjaxCall(this.url, "GET", formData, function(data){
+		$("[id^=save-span]").parent().prop('disabled', false);
+		removeBgCurtain();
+		var dataArray = data.split("_");
+		var status = dataArray[0].toUpperCase();
+		var statusResp = dataArray[1];
+		if (status == "SUCCESS") {
+			showMessage(statusResp,'success');
+			handleAddPlacementCycle(9933,191,$('#pcId').val(),"Placement Cycle ")
+			return;
+		}else{
+			showMessage(statusResp,'error');
+		}
+		
+	});
+}
+
+
+
+
+
+
+
+//***************** Placement Company Start - By Gaurav******
+
+
+
+
+
+function handlePlacementCompany(controlerMode, actionType, manageDataId, selectedData)
+{
+	var formData = {
+			controllerMode : controlerMode,
+			actionType : actionType,
+			id : manageDataId,
+			selectedData : selectedData,
+			menuId : this.menuId			
+		};		
+		bgCurtain();
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+			$('#adminContent').html(data);
+			removeBgCurtain();
+		});	
+}
+
+function  savePlacmentCompany(controllerMode,actionType,id,selectedData){
+	
+	if (!$("#genericSave").valid())
+		return false;
+	
+	var flag = validationPlacementCompany();
+	if(flag==1)
+		{
+			return false;
+		}
+	
+	var formData = {
+			controllerMode : 9932,
+			actionType : 3,
+			id : id,
+			selectedData : selectedData,
+			menuId : this.menuId
+		};
+	var obj = getDialogMessage(controllerMode, actionType, id, selectedData);
+	if(beforeGenericSave(formData,obj,0,"#genericSave")){
+		obj.callBack=true;
+	 handleGenericSave(formData,obj,0);	 
+	}
+}
+
+function cancelAddPlacementCompany(menuId){
+	$("#menuTab_" + menuId).trigger("click");
+
+}
+
+function validationPlacementCompany()
+{	
+	
+	var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+    if (reg.test($("#emailId").val()) == false || reg.test($("#userMail").val()) == false) 
+    {
+        showMessage("Please enter correct Contact-email address","error");
+    	return 1;
+    }
+}
+
+// **************** Placement Company End By Gaurav*******88
+
+
+
+/////////// Placement Cycle Dash Board //////////
+
+function manageplacementcyledashBoard(){
+	getCombobox('/Academy/a/i/getPlacementCycle', 'placementcycleId',null,null,function(){
+		$('#placementcycleId option:first-child').attr("selected", "selected");
+		getDashBoardDetails($('#placementcycleId').val());
+	});
+	
+	$("#placementcycleId").change(function(){
+		getDashBoardDetails($('#placementcycleId').val());
+	});
+	
+}
+function getDashBoardDetails(id){
+	var formData = {
+			controllerMode : 9934,
+			actionType : 8,
+			id : id,
+			menuId : this.menuId
+		};
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		$('#dashboardviewId').html(data);
+	});	
+	
+}
+//////////End Placement Cycle Dash Board End /////////
+
+
+function placementShareJobAnnouncement(controllerMode,actionType,placementCycleId,selectedData,companyId,pcJobAnnouncementId){
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			placementCycleId : placementCycleId,
+			companyId:companyId,
+			pcJobAnnouncementId:pcJobAnnouncementId,
+			menuId : this.menuId
+		};
+	
+	
+	var buttons = [
+		{
+			type : "send",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Send",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+				if (!$("#genericSave").valid())
+					return false;
+				
+				
+				sendPCJobAnnouncment();
+			}
+		},
+		{
+			type : "preview",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Preview",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+				pcjobannoucementPreview();
+				return false;
+			}
+		},
+		{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Close",
+		className : "btn-sm btn-default",
+		callback : null
+	}
+	
+];
+	
+	doAjaxCall(this.url, 'get', formData, function(data) {
+	
+			getModalDialog('large',	"Job Placement Announcement : "+selectedData,data,buttons,function() {
+		});
+	});
+}
+
+
+function getRegORUnRegStudetsForPC(controllerMode,actionType,type,placementCycleId,title){
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			placementCycleId : placementCycleId,
+			type:type,
+			menuId : this.menuId
+		};
+	
+	
+	var buttons = [{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Close",
+		className : "btn-sm btn-default",
+		callback : null
+	}
+	];
+	
+	doAjaxCall(this.url, 'get', formData, function(data) {
+	
+			getModalDialog('large',	title,data,buttons,function() {
+		});
+	});
+}
+
+function sendPCJobAnnouncment(){
+	var formData = {
+			controllerMode : 9934,
+			actionType : 16,
+			placementcycleId:$('#placementcycleId').val(),
+			pcjannouncentId:$('#pcjannouncentId').val(),
+			comapanyId:$('#comapanyId').val(),
+			targetEmailId:$('#targetEmailId').val(),
+			emaicontent:$('#emailMessage_1').val(),
+			mailSubejct:$('#mailSubejct').val(),
+			menuId : this.menuId
+		};
+	
+	
+	
+	if($('#emailMessage_1').val()){
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+			var dataArray = data.split("_");
+			var status = dataArray[0].toUpperCase();
+			var statusResp = dataArray[1];
+			if (status == "SUCCESS") {
+				$("#menuTab_" + this.menuId).trigger("click");
+				showMessage(statusResp, "success");
+					
+			}else{
+				showMessage(statusResp, "error");
+			}
+		});	
+	}else{
+		showMessage( "Email Content  Should not be Empty..!", "error");
+	}
+
+	
+}
+
+
+function setCkEditorDataForJobAnnoucement(json) {
+/*	if(json.pcjobannouncementhistoryid != 0) {*/
+		var allInstances = CKEDITOR.instances;
+		if(allInstances.length != 0) {
+			allInstances.emailMessage.setData(json);
+			$("#emailMessage_1").val(json);
+		}
+	/*}*/
+}
+
+function pcjobannoucementPreview(){
+	
+	var htmldata="<div id='' class='wrapper-modal-content-area-pad'><form class='form-horizontal'><div class='col-md-12'><fieldset class='grp_frmfld' style='padding-top: 15px; margin-top: 10px;'>" +
+	"<div class='pull-right'><a href='javascript:jobAnnouncementmailPreviewDownload()' class='' data-toggle='tooltip' title='' data-original-title='Download'><i class='fa fa-download fa-2x' aria-hidden='true'></i></a>" +
+	"<a href='javascript:jobAnnouncementmailPreviewPrint()' class='' data-toggle='tooltip' title='' data-original-title='Print'><i class='fa fa-print fa-2x' aria-hidden='true' style='margin-left: 10px;'></i></a>" +
+	"</div><div id='pdfprint' ><div class='form-group'><label class='col-md-1 control-label' for=''><strong>To: </strong></label>" +
+	"<label class='col-md-10 control-label text-left' for='' id='mailPreviewTitle'>"+$('#targetEmailId').val()+"  </label>" +
+	"</div><div class='form-group'><label class='col-md-1 control-label' for=''><strong>Subject: </strong></label>" +
+	"<label class='col-md-11 control-label text-left' for='' id='mailPreviewSubject'> "+$('#mailSubejct').val()+" </label></div>" +
+	"<div class='form-group'><label class='col-md-1 control-label text-left no-pad-r' for=''><strong>Description: </strong></label>" +
+	"<div class='col-md-11'><div id='mailDescPreview' class='preview_wrap' style='margin-top: 7px;'>" +$('#emailMessage_1').val()+
+	"</div><style media='print'>.col-md-1 {    width: 9.333333%;}.col-md-11 {    width: 91.66666667%;}.form-horizontal .control-label {    font-size: 13px;}" +
+			".preview_wrap {	font-size: 13px;    margin-top: 4px;    border-width: 0;    padding: 0;}</style></div></div></div></fieldset></div></form></div>";
+	var buttons = [{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Close",
+		className : "btn-sm btn-default",
+		callback : null
+	}
+	];
+	getModalDialog('large',	"Preview Mail",htmldata,buttons,function() {
+		
+	});
+}
+function jobAnnouncementmailPreviewPrint() {
+    html2canvas(
+            document
+                    .getElementById('pdfprint'),
+            {
+                onrendered : function(
+                        canvas) {
+                    var data = canvas
+                            .toDataURL();
+                    var docDefinition = {
+                        content : [ {
+                            image : data,
+                            width : 500,
+                            sheet : 'landscape'
+                        } ]
+                    };
+                    pdfMake
+                            .createPdf(
+                                    docDefinition)
+                            .print();
+                }
+            });
+}
+function jobAnnouncementmailPreviewDownload() {
+    html2canvas(
+            document
+                    .getElementById('pdfprint'),
+            {
+                onrendered : function(
+                        canvas) {
+                    var data = canvas
+                            .toDataURL();
+                    var docDefinition = {
+                        content : [ {
+                            image : data,
+                            width : 500,
+                            sheet : 'landscape'
+                        } ]
+                    };
+                    pdfMake
+                            .createPdf(
+                                    docDefinition)
+                            .download(
+                            "Preview Email.pdf");
+                }
+            });
+}
+
+
+
+// calling transrcript select box start
+
+function callTranscriptComboBox(){
+	$("#USNIds").attr("placeholder","e.g.\nPES1201700000\n01FB15ECS000");
+	var featureId=106;
+	getCheckCombobox("/Academy/a/i/getTranscriptTypes/"+featureId, "transType");
+	getCombobox('/Academy/a/i/getInstitutes', 'instId',null,null,function(){
+		if($('#instId').val()!= null){
+				 getCombobox('/Academy/a/i/batches', 'batchId',null,null,function(){
+						getCombobox('/Academy/a/i/programByInstId/'+$('#instId').val(), 'program',null,null,function(){
+							getCombobox('/Academy/a/i/semestersBasedOnBatchAndPgm/'+$('#instId').val()+'/'+$('#program').val()+'/'+$('#batchId').val(), 'batchClassId',null,null);
+						});
+				 });
+		}
+		});
+	
+}
+
+function getComboBoxForPrograms(){
+	
+	if($('#instId').val()!= null){
+	getCombobox('/Academy/a/i/programByInstId/'+$('#instId').val(), 'program',null,null,function(){
+		getCombobox('/Academy/a/i/semestersBasedOnBatchAndPgm/'+$('#instId').val()+'/'+$('#program').val()+'/'+$('#batchId').val(), 'batchClassId',null,null);
+	});
+		
+	}
+}
+
+function getComboBoxForSemester(){
+	
+	if($('#instId').val()!= null && $('#program').val()!=null && $('#batchId').val()!=null ){
+		getCombobox('/Academy/a/i/semestersBasedOnBatchAndPgm/'+$('#instId').val()+'/'+$('#program').val()+'/'+$('#batchId').val(), 'batchClassId',null,null);
+	}
+}
+
+
+
+//calling transrcript select box end
+
+// placement student Registration start
+
+function studnetPlacementRegistration(controllerMode,actionType,placementCycleId,selectedData,placementCompanyId,pcJobAnnouncementId){
+	var formData = {
+			controllerMode : controllerMode,
+			actionType : actionType,
+			placementCycleId : placementCycleId,
+			placementCompanyId:placementCompanyId,
+			companyName:selectedData,
+			pcJobAnnouncementId:pcJobAnnouncementId,
+			menuId : this.menuId
+		};
+	
+	
+	var buttons = [
+		{
+			type : "Submit",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Submit",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+				getConfirmDialog("Submit", "Are you sure you want to submit  ? ", function() {
+					sumbitStudentPlacementRegistraion(placementCycleId,placementCompanyId,pcJobAnnouncementId,1);
+				});
+				return false;
+			}
+		},
+		{
+			type : "SaveSend",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Sumbit and Send Mail",
+			className : "btn-sm btn-default",
+			callback : function(e) {
+				getConfirmDialog("Submit and Send Mail", "Are you sure you want to submit and send mail? ", function() {
+					sumbitStudentPlacementRegistraion(placementCycleId,placementCompanyId,pcJobAnnouncementId,2);
+					modalDialog.modal('hide');
+				});
+				return false;
+			}
+		},
+		{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Close",
+		className : "btn-sm btn-default",
+		callback : null
+	}
+	
+];
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+	
+			getModalDialog('large',	"Job Placement Announcement : "+selectedData,data,buttons,function() {
+		});
+	});
+}
+
+
+function sumbitStudentPlacementRegistraion(placementCycleId,placementCompanyId,pcJobAnnouncementId,typeId){
+	var formData = new FormData($('#genericSave')[0]);
+	formData.append("menuId", this.menuId);
+	formData.append("placementCycleId", placementCycleId);
+	formData.append("placementCompanyId", placementCompanyId);
+	formData.append("typeId", typeId);
+	formData.append("pcJobAnnouncementId", pcJobAnnouncementId);
+	
+	formData.append("mailBody", $('#plcmntMailDescription').html());
+	
+	bgCurtain();
+	doAjaxCall(this.url, 'POST', formData, function(data) {
+		removeBgCurtain();
+		if(typeId==1){
+			if ((data.split("_")[0]).indexOf("SUCCESS") > -1) {
+				$('#PCSTDREGPKID').val(data.split("_")[1]);
+				showMessage("Student placement registered successfully","success");
+			}else{
+				$('#PCSTDREGPKID').val("0");
+				showMessage("Student placement not registered","error");
+			}
+		}else if(typeId==2){
+			if ((data.split("_")[0]).indexOf("SUCCESS") > -1) {
+				$('#PCSTDREGPKID').val(data.split("_")[1]);
+				showMessage("Student placement mails sent successfully","success");
+			}else{
+				$('#PCSTDREGPKID').val("0");
+				showMessage("Student placement mails not sent successfully","error");
+			}
+		}
+		
+	},false,false);
+	
+}
+
+function showPlacementRegistrationStds(placementCycleId,placementCompanyId,pcJobAnnouncementId){
+	var formData = {
+			controllerMode : 9934,
+			actionType : 210,
+			placementCycleId : placementCycleId,
+			placementCompanyId:placementCompanyId,
+			pcJobAnnouncementId:pcJobAnnouncementId,
+			menuId : this.menuId
+		};
+	
+	var buttons = [
+		{
+			type : "send",
+			label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>OK",
+			className : "btn-sm btn-default",
+			callback : null
+		}
+	
+];
+	
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+			getModalDialog('large',	"Placement Registered Students",data,buttons,function() {
+		});
+	});
+	
+}
+//end
+
+

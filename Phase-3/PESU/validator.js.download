@@ -1,0 +1,289 @@
+$(document).ready(function() {    
+    $('#forgotPassForm')
+    .bootstrapValidator({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields : {
+        	loginId : {
+				validators : {
+					notEmpty : {
+						message : 'The login Id cannot be empty'
+					}
+				}
+			}
+		}
+    })
+    .on('success.field.bv', function(e, data) {
+        if (data.bv.getInvalidFields().length > 0) {    // There is invalid field
+            data.bv.disableSubmitButtons(true);
+        }else{
+        	data.bv.disableSubmitButtons(false);
+        }
+    });
+    
+    
+    $('#passForm1')
+    .bootstrapValidator({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields : {
+			newPass : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+					stringLength : {
+						min : 2,
+						max : 30,
+						message : 'The password length must be > 2 and < 30 characters'
+					}
+
+				}
+			},
+			newPass1 : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+					stringLength : {
+						min : 2,
+						max : 30,
+						message : 'The password length must be > 2 and < 30 characters'
+					},
+					identical : {
+						field : 'newPass',
+						message : 'The password and its confirm do not match'
+					}
+
+				}
+			}
+		}
+    })
+    .on('success.field.bv', function(e, data) {
+        if (data.bv.getInvalidFields().length > 0) {    // There is invalid field
+            data.bv.disableSubmitButtons(true);
+        }else{
+        	data.bv.disableSubmitButtons(false);
+        }
+    });
+    
+    $('#genericSave')
+    .bootstrapValidator({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields : {
+			usn : {
+				validators : {
+					notEmpty : {
+						message : 'The SRN/USN is required'
+					}
+				}
+			},
+			dobText : {
+				validators : {
+					notEmpty : {
+						message : 'The DOB is required'
+					}
+				}
+			},
+			newemail : {
+				validators : {
+					notEmpty : {
+						message : 'The email is required'
+					}
+				}
+			},
+			confirmemail : {
+				validators : {
+					notEmpty : {
+								message : 'The email is required'
+							},
+					identical : {
+						field : 'newemail',
+						message : 'The email and its confirm do not match'
+					}
+				}
+			},
+			newphone : {
+				validators : {
+					notEmpty : {
+						message : 'The Phone No. is required'
+					},
+					stringLength : {
+						min : 6,
+						max : 10,
+						message : 'The Phone No. length must be at most 10 digits'
+					}
+
+				}
+			},
+			confirmphone : {
+				validators : {
+					notEmpty : {
+						message : 'The Phone No. is required'
+					},
+					stringLength : {
+						min : 6,
+						max : 30,
+						message : 'The Phone No. length must be at most 10 digits'
+					},
+					identical : {
+						field : 'newphone',
+						message : 'The Phone no. and its confirm do not match'
+					}
+
+				}
+			}
+		},
+		/*custom: {
+		  equals: function($el) {
+			var matchValue = $el.data("equals") // foo
+			if ($el.val() !== matchValue) {
+			  /*return "Hey, that's not valid! It's gotta be " + matchValue*-/
+			  return "Fields not matched"
+			}
+		  }
+		}*/
+		custom: {
+			required: function ($el) { 
+				return !!$.trim($el.val()) ;
+			}
+		  },
+		  errors: {
+			required: 'Please fill out this field.'
+		  }
+    })
+    .on('success.field.bv', function(e, data) {
+        if (data.bv.getInvalidFields().length > 0) {    // There is invalid field
+            data.bv.disableSubmitButtons(true);
+        } else {
+        	data.bv.disableSubmitButtons(false);
+        }
+    });
+    
+});
+
+function hadleChangepasswordValidation (){
+    $('#passForm')
+    .bootstrapValidator({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields : {
+			oldPass : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+				}
+			},
+			newPass : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+					stringLength : {
+						min : 2,
+						max : 30,
+						message : 'The password length must be > 2 and < 30 characters'
+					}
+
+				}
+			},
+			newPass1 : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+					stringLength : {
+						min : 2,
+						max : 30,
+						message : 'The password length must be > 2 and < 30 characters'
+					},
+					identical : {
+						field : 'newPass',
+						message : 'The password and its confirm do not match'
+					}
+
+				}
+			}
+		}
+    })
+    .on('success.field.bv', function(e, data) {
+        if (data.bv.getInvalidFields().length > 0) {    // There is invalid field
+            data.bv.disableSubmitButtons(true);
+        }else{
+        	data.bv.disableSubmitButtons(false);
+        }
+    });
+}
+
+
+
+function hadleChangepasswordValidationOnLoad(){
+    $('#passFormOnLoad')
+    .bootstrapValidator({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields : {
+			newPassOnLoad : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+					stringLength : {
+						min : 2,
+						max : 30,
+						message : 'The password length must be > 2 and < 30 characters'
+					}
+
+				}
+			},
+			newPass1OnLoad : {
+				validators : {
+					notEmpty : {
+						message : 'The password is required'
+					},
+					stringLength : {
+						min : 2,
+						max : 30,
+						message : 'The password length must be > 2 and < 30 characters'
+					},
+					identical : {
+						field : 'newPassOnLoad',
+						message : 'The password and its confirm do not match'
+					}
+
+				}
+			}
+		}
+    })
+    .on('success.field.bv', function(e, data) {
+        if (data.bv.getInvalidFields().length > 0) {    // There is invalid field
+            data.bv.disableSubmitButtons(true);
+        }else{
+        	data.bv.disableSubmitButtons(false);
+        }
+    });
+}
+
+

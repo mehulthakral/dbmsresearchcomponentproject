@@ -1,0 +1,663 @@
+@font-face {
+  font-family: 'pesu-ico';
+  src:  url('../fonts/pesu-ico.eot?27x55e');
+  src:  url('../fonts/pesu-ico.eot?27x55e#iefix') format('embedded-opentype'),
+    url('../fonts/pesu-ico.ttf?27x55e') format('truetype'),
+    url('../fonts/pesu-ico.woff?27x55e') format('woff'),
+    url('../fonts/pesu-ico.svg?27x55e#pesu-ico') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="pesu-ico-"], [class*=" pesu-ico-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'pesu-ico' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.pesu-ico-cie .path1:before {
+  content: "\e9c2";
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path2:before {
+  content: "\e9c3";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path3:before {
+  content: "\e9c4";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path4:before {
+  content: "\e9c5";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path5:before {
+  content: "\e9c6";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path6:before {
+  content: "\e9c7";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path7:before {
+  content: "\e9c8";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path8:before {
+  content: "\e9c9";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path9:before {
+  content: "\e9ca";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-cie .path10:before {
+  content: "\e9cb";
+  margin-left: -0.810546875em;
+  color: rgb(255, 255, 255);
+}
+.pesu-ico-add:before {
+  content: "\e901";
+}
+.pesu-ico-aeroplane:before {
+  content: "\e971";
+}
+.pesu-ico-agenda:before {
+  content: "\e902";
+}
+.pesu-ico-alarm-clock:before {
+  content: "\e903";
+}
+.pesu-ico-ambulance:before {
+  content: "\e939";
+}
+.pesu-ico-ambulance-no-light:before {
+  content: "\e96a";
+}
+.pesu-ico-a-best-test-result:before {
+  content: "\e900";
+}
+.pesu-ico-app:before {
+  content: "\e904";
+}
+.pesu-ico-arrow-back:before {
+  content: "\e988";
+}
+.pesu-ico-arrow-down:before {
+  content: "\e926";
+}
+.pesu-ico-arrow-forward:before {
+  content: "\e989";
+}
+.pesu-ico-arrow-left:before {
+  content: "\e907";
+}
+.pesu-ico-arrow-right:before {
+  content: "\e947";
+}
+.pesu-ico-arrow-up:before {
+  content: "\e986";
+}
+.pesu-ico-attachment:before {
+  content: "\e905";
+}
+.pesu-ico-award:before {
+  content: "\e906";
+}
+.pesu-ico-award-olive-branches-symbol:before {
+  content: "\e99a";
+}
+.pesu-ico-award-star-with-olive-branches:before {
+  content: "\e99b";
+}
+.pesu-ico-bar-chart:before {
+  content: "\e97f";
+  color: #2c2f33;
+}
+.pesu-ico-bell:before {
+  content: "\e908";
+}
+.pesu-ico-bicycle:before {
+  content: "\e98d";
+}
+.pesu-ico-bookmark:before {
+  content: "\e9ae";
+}
+.pesu-ico-books:before {
+  content: "\e909";
+}
+.pesu-ico-books-stack:before {
+  content: "\e9af";
+}
+.pesu-ico-bulb:before {
+  content: "\e9a4";
+}
+.pesu-ico-bulb-no-glow:before {
+  content: "\e9a5";
+}
+.pesu-ico-bus:before {
+  content: "\e96d";
+}
+.pesu-ico-calculator:before {
+  content: "\e90a";
+}
+.pesu-ico-calendar:before {
+  content: "\e90b";
+}
+.pesu-ico-calendar-checkbox:before {
+  content: "\e9b0";
+}
+.pesu-ico-calendar-day:before {
+  content: "\e9b1";
+}
+.pesu-ico-calendar-fill:before {
+  content: "\e9b2";
+}
+.pesu-ico-calendar-schedule:before {
+  content: "\e9b3";
+}
+.pesu-ico-certificate:before {
+  content: "\e9a7";
+}
+.pesu-ico-chat:before {
+  content: "\e976";
+}
+.pesu-ico-checked:before {
+  content: "\e90c";
+}
+.pesu-ico-checked-sm:before {
+  content: "\e90d";
+}
+.pesu-ico-clipboard-tick:before {
+  content: "\e90e";
+}
+.pesu-ico-clock:before {
+  content: "\e90f";
+}
+.pesu-ico-clock-sq:before {
+  content: "\e910";
+}
+.pesu-ico-close:before {
+  content: "\e911";
+}
+.pesu-ico-close-o:before {
+  content: "\e919";
+}
+.pesu-ico-close-square:before {
+  content: "\e912";
+}
+.pesu-ico-cloud:before {
+  content: "\e913";
+}
+.pesu-ico-database:before {
+  content: "\e914";
+}
+.pesu-ico-departures:before {
+  content: "\e970";
+}
+.pesu-ico-diamond:before {
+  content: "\e915";
+}
+.pesu-ico-diploma:before {
+  content: "\e9a8";
+}
+.pesu-ico-discount:before {
+  content: "\e974";
+}
+.pesu-ico-doc-check-mark:before {
+  content: "\e9ac";
+}
+.pesu-ico-doc-tick:before {
+  content: "\e9ad";
+}
+.pesu-ico-document:before {
+  content: "\e98e";
+}
+.pesu-ico-download:before {
+  content: "\e916";
+}
+.pesu-ico-download-arrow:before {
+  content: "\e917";
+}
+.pesu-ico-edit:before {
+  content: "\e918";
+}
+.pesu-ico-electric-tower:before {
+  content: "\e98f";
+}
+.pesu-ico-exit:before {
+  content: "\e91a";
+}
+.pesu-ico-eye-show:before {
+  content: "\e964";
+}
+.pesu-ico-eyehide:before {
+  content: "\e985";
+}
+.pesu-ico-factory:before {
+  content: "\e990";
+}
+.pesu-ico-file:before {
+  content: "\e997";
+}
+.pesu-ico-filter:before {
+  content: "\e9c0";
+}
+.pesu-ico-filter-filled:before {
+  content: "\e9c1";
+}
+.pesu-ico-fingerprint:before {
+  content: "\e91b";
+}
+.pesu-ico-fire-truck:before {
+  content: "\e96b";
+}
+.pesu-ico-folded-newspaper:before {
+  content: "\e91c";
+}
+.pesu-ico-folder:before {
+  content: "\e91d";
+}
+.pesu-ico-folder-open:before {
+  content: "\e91e";
+}
+.pesu-ico-garbage:before {
+  content: "\e91f";
+}
+.pesu-ico-graduation:before {
+  content: "\e9ab";
+}
+.pesu-ico-graduation1:before {
+  content: "\e9aa";
+}
+.pesu-ico-graph:before {
+  content: "\e97e";
+}
+.pesu-ico-group:before {
+  content: "\e97a";
+/*   color: #2c2f33; */
+}
+.pesu-ico-guitar:before {
+  content: "\e998";
+}
+.pesu-ico-help:before {
+  content: "\e920";
+}
+.pesu-ico-home:before {
+  content: "\e921";
+}
+.pesu-ico-hourglass:before {
+  content: "\e922";
+}
+.pesu-ico-hourglass_working:before {
+  content: "\e923";
+}
+.pesu-ico-id-card:before {
+  content: "\e924";
+}
+.pesu-ico-idea:before {
+  content: "\e925";
+}
+.pesu-ico-indian-rupee:before {
+  content: "\e991";
+}
+.pesu-ico-information:before {
+  content: "\e978";
+}
+.pesu-ico-internet:before {
+  content: "\e927";
+}
+.pesu-ico-laboratory-microscope:before {
+  content: "\e992";
+}
+.pesu-ico-left-arrow:before {
+  content: "\e928";
+}
+.pesu-ico-light-bulb:before {
+  content: "\e987";
+}
+.pesu-ico-like:before {
+  content: "\e929";
+}
+.pesu-ico-list:before {
+  content: "\e92a";
+}
+.pesu-ico-list-star:before {
+  content: "\e92b";
+}
+.pesu-ico-locked:before {
+  content: "\e92c";
+}
+.pesu-ico-mail:before {
+  content: "\e92d";
+}
+.pesu-ico-medal:before {
+  content: "\e92e";
+}
+.pesu-ico-medal-badge:before {
+  content: "\e99c";
+}
+.pesu-ico-meeting:before {
+  content: "\e9b4";
+}
+.pesu-ico-megaphone:before {
+  content: "\e92f";
+}
+.pesu-ico-menu:before {
+  content: "\e930";
+}
+.pesu-ico-menu-circles:before {
+  content: "\e931";
+}
+.pesu-ico-metro-rail-o:before {
+  content: "\e96f";
+}
+.pesu-ico-microphone:before {
+  content: "\e932";
+}
+.pesu-ico-minus:before {
+  content: "\e933";
+}
+.pesu-ico-mobile-call:before {
+  content: "\e98a";
+}
+.pesu-ico-monitor:before {
+  content: "\e934";
+}
+.pesu-ico-more:before {
+  content: "\e935";
+}
+.pesu-ico-navigation:before {
+  content: "\e936";
+}
+.pesu-ico-network:before {
+  content: "\e937";
+}
+.pesu-ico-office-chair:before {
+  content: "\e938";
+}
+.pesu-ico-open-book:before {
+  content: "\e9b5";
+}
+.pesu-ico-pencil:before {
+  content: "\e9b6";
+}
+.pesu-ico-pes-university:before {
+  content: "\e979";
+/*  color: #2c2f33;*/
+}
+.pesu-ico-photo-camera:before {
+  content: "\e93a";
+}
+.pesu-ico-picture:before {
+  content: "\e93b";
+}
+.pesu-ico-pin:before {
+  content: "\e93c";
+}
+.pesu-ico-placeholder:before {
+  content: "\e93d";
+}
+.pesu-ico-placeholder-s:before {
+  content: "\e93e";
+}
+.pesu-ico-play-button:before {
+  content: "\e93f";
+}
+.pesu-ico-plus-o:before {
+  content: "\e940";
+}
+.pesu-ico-police-car:before {
+  content: "\e96c";
+}
+.pesu-ico-power:before {
+  content: "\e941";
+}
+.pesu-ico-presentation:before {
+  content: "\e942";
+}
+.pesu-ico-presentation-graphs:before {
+  content: "\e943";
+}
+.pesu-ico-print:before {
+  content: "\e944";
+}
+.pesu-ico-refresh-bold:before {
+  content: "\e9be";
+}
+.pesu-ico-refresh-thin:before {
+  content: "\e9bf";
+}
+.pesu-ico-reload:before {
+  content: "\e945";
+}
+.pesu-ico-return:before {
+  content: "\e946";
+}
+.pesu-ico-rgb:before {
+  content: "\e993";
+}
+.pesu-ico-right-arrow-o:before {
+  content: "\e948";
+}
+.pesu-ico-ring:before {
+  content: "\e98b";
+}
+.pesu-ico-route:before {
+  content: "\e949";
+}
+.pesu-ico-rupee:before {
+  content: "\e994";
+}
+.pesu-ico-school:before {
+  content: "\e995";
+}
+.pesu-ico-school-01:before {
+  content: "\e9b7";
+}
+.pesu-ico-search:before {
+  content: "\e94a";
+}
+.pesu-ico-send:before {
+  content: "\e94b";
+}
+.pesu-ico-settings:before {
+  content: "\e94c";
+}
+.pesu-ico-settings_circle:before {
+  content: "\e94d";
+}
+.pesu-ico-share:before {
+  content: "\e94e";
+}
+.pesu-ico-share-o:before {
+  content: "\e94f";
+}
+.pesu-ico-shield:before {
+  content: "\e9a9";
+}
+.pesu-ico-siren_emergency:before {
+  content: "\e950";
+}
+.pesu-ico-smartphone:before {
+  content: "\e97b";
+}
+.pesu-ico-speech-bubble:before {
+  content: "\e975";
+}
+.pesu-ico-sports-cricket:before {
+  content: "\e97c";
+}
+.pesu-ico-sports-cricket-ball:before {
+  content: "\e982";
+}
+.pesu-ico-sports-soccer:before {
+  content: "\e983";
+}
+.pesu-ico-sports-trophy-on-a-banner-with-olive-branches:before {
+  content: "\e99d";
+}
+.pesu-ico-sports-vollyball:before {
+  content: "\e9bc";
+}
+.pesu-ico-spotlight:before {
+  content: "\e951";
+}
+.pesu-ico-spotlight_two:before {
+  content: "\e952";
+}
+.pesu-ico-spreadsheet-cell-row:before {
+  content: "\e9a1";
+}
+.pesu-ico-star:before {
+  content: "\e953";
+}
+.pesu-ico-stop:before {
+  content: "\e954";
+}
+.pesu-ico-stopwatch:before {
+  content: "\e955";
+}
+.pesu-ico-student:before {
+  content: "\e956";
+}
+.pesu-ico-substract:before {
+  content: "\e957";
+}
+.pesu-ico-success:before {
+  content: "\e958";
+}
+.pesu-ico-success-fill:before {
+  content: "\e9bb";
+}
+.pesu-ico-sun-umbrella:before {
+  content: "\e9b8";
+}
+.pesu-ico-sync:before {
+  content: "\e9bd";
+}
+.pesu-ico-table:before {
+  content: "\e9a2";
+}
+.pesu-ico-table-header:before {
+  content: "\e9a3";
+}
+.pesu-ico-target:before {
+  content: "\e959";
+}
+.pesu-ico-telephone:before {
+  content: "\e98c";
+}
+.pesu-ico-test-result:before {
+  content: "\e900";
+}
+.pesu-ico-theater-masks:before {
+  content: "\e999";
+}
+.pesu-ico-three-test-tubes:before {
+  content: "\e996";
+}
+.pesu-ico-thumbs-up:before {
+  content: "\e977";
+}
+.pesu-ico-ticket:before {
+  content: "\e973";
+}
+.pesu-ico-train:before {
+  content: "\e96e";
+}
+.pesu-ico-trophy:before {
+  content: "\e95a";
+}
+.pesu-ico-trophy-first-prize:before {
+  content: "\e99e";
+}
+.pesu-ico-trophy-no-star:before {
+  content: "\e99f";
+}
+.pesu-ico-trophy-sparks:before {
+  content: "\e9a0";
+}
+.pesu-ico-two-tickets:before {
+  content: "\e972";
+}
+.pesu-ico-umbrella:before {
+  content: "\e95b";
+}
+.pesu-ico-unlink:before {
+  content: "\e95c";
+}
+.pesu-ico-unlocked:before {
+  content: "\e95d";
+}
+.pesu-ico-upload:before {
+  content: "\e95e";
+}
+.pesu-ico-upload-arrow:before {
+  content: "\e95f";
+}
+.pesu-ico-user:before {
+  content: "\e984";
+}
+.pesu-ico-user-female:before {
+  content: "\e981";
+}
+.pesu-ico-user-female-fill:before {
+  content: "\e980";
+}
+.pesu-ico-user-fill:before {
+  content: "\e97d";
+}
+.pesu-ico-user-no-circle:before {
+  content: "\e9ba";
+}
+.pesu-ico-user-no-circle-fill:before {
+  content: "\e9b9";
+}
+.pesu-ico-users:before {
+  content: "\e960";
+}
+.pesu-ico-video-camera:before {
+  content: "\e961";
+}
+.pesu-ico-video-player:before {
+  content: "\e962";
+}
+.pesu-ico-video-player-ctrl:before {
+  content: "\e963";
+}
+.pesu-ico-warning:before {
+  content: "\e9a6";
+}
+.pesu-ico-watch-tick:before {
+  content: "\e965";
+}
+.pesu-ico-wifi:before {
+  content: "\e966";
+}
+.pesu-ico-wifi-antenna:before {
+  content: "\e967";
+}
+.pesu-ico-worldwide:before {
+  content: "\e968";
+}
+.pesu-ico-worldwide-globe:before {
+  content: "\e969";
+}

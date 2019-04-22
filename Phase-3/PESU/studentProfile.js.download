@@ -1,0 +1,1624 @@
+//# sourceURL=studentProfile.js
+
+function studentProfileMenuEvents() {
+	if (!this.menuId)
+		this.menuId = 0;
+	var thisAction = this;
+	$('#studentProfileHomeMenu a').on('click', function(e, a) {
+		e.preventDefault();
+		var urlParts = $(this).attr("data-url").split("/");
+		addFiles(urlParts);
+		if (urlParts.length > 1) {
+			var menuId, url, controllerMode, actionType, id, selectedData
+			thisAction.menuId = parseInt($(this).attr("id").split("_")[1]);
+			thisAction.url = urlParts[0];
+			thisAction.controllerMode = parseInt(urlParts[2]);
+			thisAction.actionType = parseInt(urlParts[3]);
+			thisAction.id = urlParts[4] ? parseInt(urlParts[4]) : 0
+			thisAction.selectedData = urlParts[5] ? parseInt(urlParts[5]) : 0;
+			if(thisAction.menuId != 657){
+				handleStudentProfileMenuEvents();
+			}else{
+				admissionFormReportForESA();
+			}
+		}
+
+	});
+	showStudentProfileCurrentTab();
+
+}
+
+function studentProfileHomePanel() {
+	$('[id^=menuContentTab]').on('click', function(e, a) {
+		var id = $(this).attr('id');
+		if (id) {
+			var clickedTab = id.split("_")[1];
+			if (clickedTab)
+				$('a#menuTab_' + clickedTab).click();
+		}
+	});
+	return false;
+}
+
+function showHomeFeatures(id) {
+	var featureId = [];
+	featureId = id.split("_");
+	for ( var i in featureId) {
+		appendHomeFeatureBasedOnFeatureId(featureId[i])
+	}
+
+}
+
+function appendHomeFeatureBasedOnFeatureId(id) {
+	if (id) {
+		var formData = {
+			menuId : this.menuId,
+			url : this.url,
+			controllerMode : StudentProfileConstants.ControllerMode.StudentProfileHomeContriller,
+			actionType : id
+		};
+		doAjaxCall(this.url, 'GET', formData, function(data) {
+			$("#append_" + id).html(data);
+			eval(this.url + "(controllerMode,actionType,id,selectedData);");
+		});
+	}
+}
+
+function addFiles(urlParts) {
+	if (urlParts[0] == "studentSpirit") {
+		$('head').append('<link href="../css/spirit.css" rel="stylesheet"/>');
+	}
+
+}
+
+function handleStudentProfileMenuEvents() {
+	var formData = {
+		menuId : this.menuId,
+		url : this.url,
+		controllerMode : this.controllerMode,
+		actionType : this.actionType,
+		id : this.id,
+		selectedData : this.selectedData
+	};
+	doAjaxCall(this.url, 'GET', formData, function(data) {
+		if (globalDatatable) {
+			globalDatatable.destroy();
+			globalDatatable = null;
+			delete this.prevDatatable;
+		}
+		$("#StudentProfileContent").html(data);
+		eval(this.url + "(controllerMode,actionType,id,selectedData);");
+	});
+}
+
+
+function admissionFormReportForESA(){
+
+	/*var url="reports/Reports/receipt/0/"+id;*/
+	
+	var formData = {
+			controllerMode : 6570,
+			actionType : 5,
+			id : id,
+			menuId : this.appMenuId
+		}
+	var url1="studentProfileAdmin";
+		doAjaxCall(url1, 'GET', formData, function(data) {
+		
+			if(data=="SUCCESS"){
+				var url="reports/Reports/admissionFormReport";
+				window.open(url,null);
+			}else if(data=="BEFORE"){
+				showMessage("Lines are not opened ", "Error");
+			}else{
+				showMessage("Lines Closed ", "Error");
+			}
+		
+	});
+}
+
+function showStudentProfileCurrentTab() {
+	$(
+			'#studentProfileHomeMenu>li a[data-url^=studentProfileAdmin],a[data-url^=studentSpirit]')
+			.on('click', function() {
+				$('#studentProfileHomeMenu li').each(function() {
+					$(this).removeClass("active");
+				});
+				$(this).parents('li').addClass("active");
+			});
+	if ($('#studentProfileHomeMenu li:first').has('ul').length > 0)
+		$('#studentProfileHomeMenu li:first  ul a').first().trigger('click');
+	else {
+		$('#studentProfileHomeMenu li:first a').first().trigger('click');
+	}
+}
+
+function studentProfileAdmin(controllerMode, actionType, id, selectedData) {
+	var res = {};
+	switch (controllerMode) {
+	case StudentProfileConstants.ControllerMode.StudentProfileAssessmentResults:
+		res = getStudentProfileDialogMessage(controllerMode, actionType, id,
+				selectedData);
+		break;
+	case StudentProfileConstants.ControllerMode.StudentProfileEsaResultsController:
+		res = getStudentProfileDialogMessage(controllerMode, actionType, id,
+				selectedData);
+		break;
+
+	}
+
+	return res;
+}
+
+function getStudentProfileDialogMessage(controllerMode, actionType, id,
+		selectedData) {
+	var obj = {};
+	switch (controllerMode) {
+	case StudentProfileConstants.ControllerMode.StudentProfileAssessmentResults:
+		switch (actionType) {
+		case StudentProfileConstants.Action_Type.View:
+			getCombobox('../a/studentProfile/getClassByUserId','isaclass',null,null,function(){
+				getCombobox('../a/studentProfile/getIsaMasterByUserId/'+$("#isaclass").val(),'isamaster',null,null,function(){
+					$("#isamaster option:first").prop("selected",true);
+					getResultsBasedOnIsa();
+				});
+			});
+
+			break;
+		}
+		break;
+
+	case StudentProfileConstants.ControllerMode.StudentProfileEsaResultsController:
+		switch (actionType) {
+		case StudentProfileConstants.Action_Type.View:
+			var that =this;
+			getCombobox('../a/studentProfile/getEsaResultSemBySRN',	'getSemesterName',null,null,function(){
+				if(that.ajaxData!=null && that.ajaxData.length==0){
+					$("#esaResAvlMsg").css("display","none");
+					$("#esaResNtAvlMsg").css("display","block")
+				}else{
+					$("#esaResAvlMsg").css("display","block");
+					$("#esaResNtAvlMsg").css("display","none")
+				}
+			});
+			break;
+		}
+		break;
+
+	}
+	return obj;
+}
+
+// *****************Spirit*************************************************************//
+/*
+function setupApp() {
+
+	$('[id^=custom]').click(function() {
+		var idArray = this.id.split("_");
+		var funCall = idArray[1];
+		var ret = eval(funCall + "(this, this.id, 0);");
+		return ret;
+	});
+}
+
+function changeTabStatus(currentPage) 
+{
+	if ($('#custom_moveToSpirit_' + currentPage).parent('li').closest('ul').children().hasClass('current'))
+		{
+		$('#custom_moveToSpirit_' + currentPage).parent('li').closest('ul').children().removeClass('current');
+		}
+		
+
+	if ($('#custom_moveToSpirit_' + currentPage).parent('li').hasClass('disabled'))
+		{
+		$('#custom_moveToSpirit_' + currentPage).parent('li').addClass('current').removeClass('disabled');
+		}
+		
+	else
+		{
+		$('#custom_moveToSpirit_' + currentPage).parent('li').addClass('current');
+		}
+		
+}
+
+var spiritData = {};
+function pushSpiritMenuIntoArray(which) {
+	var spiritsPageList = [];
+	if (which) {
+		for (var i = 1; i <= 7; i++) {
+			spiritsPageList.push(i);
+		}
+	}
+	spiritData.spiritsPageList = spiritsPageList;
+	spiritData.currentPage = 0;
+	spiritData.spiritLength = spiritsPageList.length;
+}
+
+function moveToSpirit(thisObject) {
+	var currentPage = $(thisObject).attr('data-page');
+	spiritData.currentPage = --currentPage;
+	moveSpirit(true);
+	return false;
+}
+
+function moveToNextSpirit() {
+	spiritData.currentPage++;
+	moveSpirit(true);
+	return false;
+}
+
+function moveToPreviousSpirit() {
+	spiritData.currentPage--;
+	moveSpirit(true);
+	return false;
+}
+
+function moveSpirit() 
+{
+	var formData = {
+		page : spiritData.spiritsPageList[spiritData.currentPage],
+		controllerMode : StudentProfileConstants.ControllerMode.StudentProfileSpiritContriller,
+		actionType : StudentProfileConstants.Action_Type.MOVE_TO_SPIRIT_PAGE
+	}
+	doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+		processSpirit(data);
+
+	});
+}
+
+function processSpirit(data) {
+	changeTabStatus(spiritData.spiritsPageList[spiritData.currentPage]);
+	$('#oas_wrapper').html(data);
+
+	if (spiritData.currentPage > 0
+			&& spiritData.currentPage < spiritData.spiritLength) {
+		$('#custom_moveToNextSpirit').show();
+		$('#custom_moveToPreviousSpirit').show();
+		$('#spritclk_RegisterSuccess').hide();
+	}
+	if (spiritData.currentPage == 0) {
+		$('#custom_moveToPreviousSpirit').hide();
+		$('#custom_moveToNextSpirit').show();
+		$('#spritclk_RegisterSuccess').hide();
+	}
+
+	if (spiritData.currentPage == spiritData.spiritLength - 1) {
+		$('#custom_moveToNextSpirit').hide();
+		$('#custom_moveToPreviousSpirit').show();
+		$('#spritclk_RegisterSuccess').show();
+	}
+
+	listenCurrentSpiritPage();
+
+	if (requestType && requestType === "ADMIN") {
+		$('input, textarea, select').prop('disabled', true);
+	}
+
+	alignSpiritRow();
+}
+
+
+function saveSpiritState(formData)
+{
+	doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+		showMessage("Auto saved", "success");
+	});
+}
+
+function listenCurrentSpiritPage() {
+	// setting spirit data
+	setDateTimePicker();
+	$('.spiritShowingFormatDate').val($('#todayDate').val());
+	
+	var labelId = "ans_"
+	for (var i = 0; i < spiritQuestionData.noQuestions; i++) {
+		var uniqueId = labelId + spiritQuestionData.questionsList[i].uniqueId;
+		if ($('[id^=' + uniqueId + ']').length > 0) {
+			var answer = spiritQuestionData.questionsList[i].answer;
+			
+			switch(spiritQuestionData.questionsList[i].qt)
+			{
+			case 1:
+				if (answer.includes("_OTHER#$%#$%#$%")) 
+				{
+					if (answer.length > 0) 
+					{
+						
+						var ansArr = answer.split("#$%#$%#$%");
+						for (var j = 0; j < ansArr.length; j++) 
+						{
+							if(ansArr[j].includes("#$%#$%#$$"))
+								{
+								var idAnsArray = ansArr[j].split("#$%#$%#$$");
+								if(idAnsArray[0].includes("_OTHER"))
+								{
+								$('#' + idAnsArray[0]).prop("checked", true);
+								$('#' + idAnsArray[0]).val(decodeURI(idAnsArray[1]));
+								}
+							else
+								{
+									$('#' + idAnsArray[0]).prop("checked", true);
+								}
+							}
+						}
+					}
+				} 
+				else
+				{
+					$('#' + uniqueId + "_" + answer).prop("checked", true);
+				}
+				break;
+			case 4:
+				if (answer.includes("#$%#$%#$%")) 
+				{
+					if (answer.length > 0) 
+					{
+						if(answer.includes("#$%#$%#$$"))
+						{
+						var ansArr = answer.split("#$%#$%#$%");
+						for (var j = 0; j < ansArr.length; j++) 
+						{
+							if(ansArr[j].includes("#$%#$%#$$"))
+								{
+								var idAnsArray = ansArr[j].split("#$%#$%#$$");
+								
+								if(idAnsArray[0].includes("_OTHER"))
+									{
+									$('#' + idAnsArray[0].substring(0, idAnsArray[0].indexOf('_TEXT'))).prop("checked", true);
+									$('#' + idAnsArray[0]).val(decodeURI(idAnsArray[1]));
+									}
+								else
+									{
+										$('#' + idAnsArray[0]).prop("checked", true);
+									}
+								}
+							}
+						}
+					}
+				} 
+				break;
+			case 3:
+				if (answer.length > 0) 
+				{
+					if (answer.includes("#$%#$%#$%")) 
+					{
+					var ansArr = answer.split("#$%#$%#$%");
+					for (var j = 0; j < ansArr.length; j++)
+					{
+						if(answer.includes("#$%#$%#$$"))
+							{
+							var idAnsArray = ansArr[j].split("#$%#$%#$$");
+							$('#' + idAnsArray[0]).val(decodeURI(idAnsArray[1]));
+							}
+						}
+					}
+				}
+				break;
+			case 11:
+				$('#' + uniqueId).val(decodeURI(answer));
+				break;
+			case 16:
+				if (answer.length > 0) 
+				{
+					//answer=decodeURI(answer);
+					if (answer.includes("#$%#$%#$%")) 
+					{
+					var ansArr = answer.split("#$%#$%#$%");
+					for (var j = 0; j < ansArr.length; j++)
+						{
+						if(answer.includes("#$%#$%#$$"))
+							{
+							var idAnsArray = ansArr[j].split("#$%#$%#$$");
+							$('#' + idAnsArray[0]).val(decodeURI(idAnsArray[1]));
+							}
+						}
+					}
+				}
+				break;
+				
+			case 17:
+				if (answer.length > 0) 
+				{
+					if (answer.includes("#$%#$%#$%")) 
+					{
+					var ansArr = answer.split("#$%#$%#$%");
+					for (var j = 0; j < ansArr.length; j++)
+					{
+						if(answer.includes("#$%#$%#$$"))
+							{
+							var idAnsArray = ansArr[j].split("#$%#$%#$$");
+							$('#' + idAnsArray[0]).val(decodeURI(idAnsArray[1]));
+							}
+					}
+					}
+				}
+				break;
+				
+				default:
+					break;
+			}
+		}
+	}
+
+	// listening spiritdata
+	if (requestType != "ADMIN") {
+
+		$('input[type="text"], input[type="number"]').on('blur paste cut change', function(e) {
+			setAndSaveSpiritData(this);
+		});
+		$('textarea').on('blur paste cut', function(e) {
+			setAndSaveSpiritData(this);
+		});
+		$('input[type="radio"], input[type=checkbox]').on('click', function(e) {
+			setAndSaveSpiritData(this);
+		});
+		$('select').on('change', function(e) {
+			setAndSaveSpiritData(this);
+		});
+	}
+}
+
+function setAndSaveSpiritData(thisObject) {
+
+	var spiritLabelType = $(thisObject).attr('data-labelType');
+	var questionBankId = $(thisObject).attr('data-bankId');
+
+	var answered = "";
+
+	for (var i = 0; i < spiritQuestionData.noQuestions; i++) 
+	{
+		if (questionBankId === spiritQuestionData.questionsList[i].uniqueId) 
+		{
+			switch(spiritQuestionData.questionsList[i].qt)
+			{
+			case 1:
+				answered = $(thisObject).val();
+				if ((thisObject.id).includes("OTHER")) 
+				{
+					var bankAnwerUUID = $(thisObject).attr('data-bankAnswerUUID');
+					var answered1 = "";
+					$("[id^=ans_" + questionBankId + "_" + bankAnwerUUID + "]")	.each(
+									function() {
+										answered1 = answered1 + this.id	+ "#$%#$%#$$"+ encodeURI($(this).val())	+ "#$%#$%#$%";
+									});
+					answered = answered1;
+				}
+				break;
+				
+			case 4:
+				answered = $(thisObject).val();
+					var answered1 = "";
+					if(thisObject.name.includes('_TEXT'))
+						{
+						thisObject.name=thisObject.name.substring(0,thisObject.name.indexOf('_TEXT'));
+						}
+					$('input[name^='+thisObject.name+']').each(function(e){
+						if(this.type==="text" || (this.type==="checkbox" && $(this).is(':checked')))
+							{
+							answered1 = answered1 + this.id	+ "#$%#$%#$$"+ encodeURI($(this).val())	+ "#$%#$%#$%";
+							}
+					});
+					answered = answered1;
+				break;
+			case 3:
+				$("[id^=ans_" + questionBankId + "]").each(function() {
+					answered = answered + this.id + "#$%#$%#$$"+ encodeURI($(this).val()) + "#$%#$%#$%";
+				});
+				break;
+			case 11:
+				answered = encodeURI($(thisObject).val());
+				break;
+				
+			case 16:
+				$('select[name^='+thisObject.name+']').each(function(e){
+					answered = answered  + this.id	+ "#$%#$%#$$"+ encodeURI($(this).val())	+ "#$%#$%#$%";
+				});
+				break;
+			case 17:
+				$("[id^=ans_" + questionBankId + "]").each(function() {
+					answered = answered + this.id + "#$%#$%#$$"+ encodeURI($(this).val()) + "#$%#$%#$%";
+				});
+				break;
+				
+				default :
+					break;
+			}
+
+			spiritQuestionData.questionsList[i].answer = answered;
+		}
+	}
+	var formData = {
+		questionBankId : questionBankId,
+		answered : answered,
+		controllerMode : StudentProfileConstants.ControllerMode.StudentProfileSpiritContriller,
+		actionType : StudentProfileConstants.Action_Type.Add
+	}
+	saveSpiritState(formData);
+}
+
+function alignSpiritRow() {
+	$('.content_row').each(
+			function() {
+				if ($(this).find('[class*="col-"]').html().length == 0
+						|| $(this).find('[class*="col-"]') == "") {
+					$(this).children('[class*="col-"]').append('&nbsp;');
+				}
+			});
+}*/
+// ****************************************EsaResults********************************//
+
+function getEsaResultsBasedOnSem(getEsaresultsDetailId) {
+
+	var formData = {
+		controllerMode : StudentProfileConstants.ControllerMode.StudentProfileEsaResultsController,
+		actionType : StudentProfileConstants.Action_Type.VIEW_BY_SEM,
+		esaresultsDetailId : getEsaresultsDetailId
+	};
+	doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+		$('#getEsaResultsBasedOnSem').html(data);
+	});
+}
+
+// *********************************Assessment
+// Results*************************************
+
+function getResultsBasedOnAssessment() {
+
+}
+
+function getResultsBasedOnIsa(){
+	var isaclass = $("#isaclass").val(),
+	isamaster=$("#isamaster").val();
+	
+	if(!isaclass || !isamaster){
+		//showMessage("Select corresponding fields", "error");
+		//return;
+	}
+
+	var formData = {
+			controllerMode : StudentProfileConstants.ControllerMode.StudentProfileAssessmentResults,
+			actionType : StudentProfileConstants.Action_Type.VIEW_BY_ASSESSMENT_ID,
+			assessmentId : isaclass+"-"+isamaster,
+		};
+		doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+			$('#assessmentResultDetailsTbl').html(data);
+		});
+}
+
+function getIsaMasterAndResult(){
+	getCombobox('../a/studentProfile/getIsaMasterByUserId/'+$("#isaclass").val(),'isamaster',null,null,function(){
+		$("#isamaster option:first").prop("selected",true);
+		getResultsBasedOnIsa();
+	});
+}
+// ********************************* Student
+// Courses*************************************
+
+function validateSelectedElectiveSubjects() {
+	$('[id^=electiveSubjects_]')
+			.on(
+					'click',
+					function(e) {
+						var groupMaxSubjects = getInteger($(this).parents('li')
+								.eq(1).attr('data-groupMaxSubjects'), 0);
+						var groupMinSubjects = getInteger($(this).parents('li')
+								.eq(1).attr('data-groupMinSubjects'), 0);
+						if (groupMaxSubjects || groupMinSubjects) {
+
+							var groupText = $(this).attr('data-groupName');
+							var groupName = $(this).attr('name');
+							var groupCheckedLength = $('input[name="'+ groupName + '"]:checked').length;
+							var subjects = " subjects ";
+							if (groupCheckedLength > groupMaxSubjects
+									&& groupMaxSubjects > 0) {
+								if (groupMaxSubjects === 1)
+									{
+									subjects = "subject";
+									}
+									
+								/*showMessage(
+										"You can select only "									+ groupMaxSubjects												+ " "
+												+ subjects
+												+ " from "
+												+ groupText
+												+ ". if you want to select another subject please "
+												+ "unselect selected one and reselect. ",
+										"error");*/
+								
+								$.notify("You can select only " + groupMaxSubjects + " "+ subjects + " from " + groupText+". if you want to select another subject, please unselect the selected one. ",  { calssName:'error',autoHideDelay: 20000});
+								
+								
+								e.preventDefault();
+
+							}
+							if (groupCheckedLength < groupMinSubjects
+									&& groupMinSubjects > 0) {
+								if (groupMinSubjects === 1)
+									{
+									subjects = " subject ";
+									}
+								$.notify("Please select atleast  " + groupMinSubjects	+ " " + subjects + " from " + groupText,  { calssName:'error',autoHideDelay: 15000});
+								//showMessage("At least you have to select  "										+ groupMinSubjects + " " + subjects	+ " from " + groupText, "error");
+							}
+
+						}
+
+					});
+}
+
+function saveSelectedElectiveSubjects(controlleMode, actionType)
+{
+
+	var groups = getInteger($('.electivesCheck').children('li').length, 0);
+	var formData = {};
+	var electedSubjects = [];
+	var electedSubjectsWithFaculty=[];
+	var electedFaculty=[];
+	for (var i = 0; i < groups; i++) {
+		var currentGroup = $('.electivesCheck').children('li').eq(i);
+		var groupName = $(currentGroup).attr('data-groupName');
+		var groupMaxSubjects = getInteger($(currentGroup).attr(	'data-groupMaxSubjects'), 0);
+		var groupMinSubjects = getInteger($(currentGroup).attr(
+				'data-groupMinSubjects'), 0);
+		var groupCheckedLength = $('input[name="' + groupName + '"]:checked').length;
+		var groupText = $(currentGroup).attr('data-groupText');
+
+		var subjects = " subjects ";
+		if (groupCheckedLength > groupMaxSubjects && groupMaxSubjects > 0) 
+		{
+			subjects = "subject";
+			//showMessage("You can select only " + groupMaxSubjects + " "+ subjects + " from " + groupText, "error");
+			$.notify("You can select only " + groupMaxSubjects + " "+ subjects + " from " + groupText,  { calssName:'error',autoHideDelay: 15000});
+			return false;
+			break;
+		}
+		if (groupCheckedLength < groupMinSubjects && groupMinSubjects > 0) 
+		{
+			if (groupMinSubjects === 1)
+				subjects = " subject ";
+			//showMessage("At least you have to select  " + groupMinSubjects	+ " " + subjects + " from " + groupText, "error");
+			$.notify("Please select atleast  " + groupMinSubjects	+ " " + subjects + " from " + groupText,  { calssName:'error',autoHideDelay: 15000});
+			return false;
+			break;
+		}
+
+		var selected = [];
+		var groupId;
+		var isFacultySelected=true;
+		var facultyInElectives=$('#facultyInElectives').val();
+		$('input[name="' + groupName + '"]:checked').each(function() {
+			var selectedId=$(this).val();
+			var selectedSubjectsWithFaculty={};
+			
+			var subjectCode=$(this).attr('data-subjectcode');
+			selectedSubjectsWithFaculty.subjectId=selectedId;
+			selectedSubjectsWithFaculty.subjectBatchId=$(this).attr('data-batchid');
+			selectedSubjectsWithFaculty.facultyId=$(this).attr('data-faculty');
+			if($('#select_'+selectedId).length>0)
+				{
+				var selectedValue=$('#select_'+selectedId).val();
+				if(selectedValue==-1)
+					{
+					showMessage("Please select respective faculty for "+subjectCode,"error");
+					isFacultySelected=false;
+					return false;
+					}
+				selectedSubjectsWithFaculty.facultyId=selectedValue;
+				}
+			electedSubjectsWithFaculty.push(selectedSubjectsWithFaculty);
+			electedFaculty.push(selectedSubjectsWithFaculty.facultyId);
+			selected.push(selectedId);
+		});
+		if(!isFacultySelected)
+			{
+			return;
+			}
+		// var elected='$#@&$#@&';
+		// electedSubjects.push(elected+groupId+'_'+selected.toString());
+		electedSubjects.push(selected.toString());
+	}
+	var alReadyElectedSubjects = $('#electedSubjects').attr('data-electedSubjects');
+	var alReadyElectedFaculty = $('#electedSubjects').attr('data-electedfaculty');
+	if (alReadyElectedSubjects && alReadyElectedSubjects.length && alReadyElectedFaculty) 
+	{
+		alReadyElectedSubjects = alReadyElectedSubjects.substring(0,(alReadyElectedSubjects.length - 1));
+		alReadyElectedSubjects.toString();
+		alReadyElectedFaculty=alReadyElectedFaculty.substring(0,(alReadyElectedFaculty.length - 1));
+	}
+	if ( electedSubjects.toString() != alReadyElectedSubjects) {
+		
+		if(facultyInElectives==1 && electedSubjectsWithFaculty &&  alReadyElectedFaculty.toString() ==electedFaculty.toString())
+			{
+			showMessage("No changes found in your electives to save.", "error");
+			return;
+			}
+		getStudentModalConfirmDialog(
+				"Save elective subjects",
+				"Are you sure you want to proceed ?",
+				function(data) {
+					formData.controllerMode = controlleMode;
+					formData.actionType = actionType;
+					formData.electedSubjects = electedSubjects.toString();
+					formData.alReadyElectedSubjects = alReadyElectedSubjects.toString();
+					formData.electedSubjectsWithFaculty=JSON.stringify(electedSubjectsWithFaculty);
+					formData.facultyInElectives=facultyInElectives;
+					bgCurtain();
+					doAjaxCall(
+							'studentProfileAdmin',
+							'POST',
+							formData,
+							function(data) {
+								removeBgCurtain();
+								if (data.indexOf("SUCCESS") > -1) {
+									showMessage("Your electives saved successfully..","success");
+									$('a#menuTab_653').trigger('click');
+								} else {
+									if (data) {
+										var dataArray = data.split("_")[1];
+										showMessage(dataArray, "error");
+									} else
+										showMessage("Unable to process your request please contace academy team.","error");
+								}
+
+							});
+				}, false);
+	} 
+	else
+		{
+		showMessage("No changes found in your electives to save.", "error");
+		}
+		
+}
+
+function selectStudentElectedSubjects(electedSubjects) {
+	if (electedSubjects && electedSubjects.length) {
+		var electedSubject = electedSubjects.split(',');
+		for (var j = 0; j < electedSubject.length; j++) {
+			$('#electiveSubjects_' + electedSubject[j]).prop('checked', true);
+		}
+	}
+}
+function getStudentSubjectsBasedOnSemester(selectedValue, callBack)
+{
+	if (selectedValue) {
+		var formData = {};
+		formData.controllerMode = 6530;
+		formData.actionType = 8;
+		formData.id = selectedValue;
+		bgCurtain();
+		doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+			removeBgCurtain();
+			$('#studentSemesterSubjects').html(data);
+			
+			if( typeof callBack=='function')
+				{
+				callBack();
+				}
+
+		});
+	}
+
+}
+
+var studentModalConfirm;
+function getStudentModalConfirmDialog(title, message, yesCallback, noCallBack) {
+	modalConfirm = bootbox
+			.confirm(
+					{
+						message : message,
+						title : title,
+						buttons : {
+							confirm : {
+								label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Yes",
+								className : "btn btn-sm btn-success",
+							},
+							cancel : {
+								label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>No",
+								className : "btn btn-sm btn-primary",
+							},
+						},
+						callback : function(result) {
+							if (result && yesCallback) {
+								yesCallback();
+							} else if (noCallBack) {
+								noCallBack();
+							}
+						}
+					}).init(function() {
+
+			}).on('hidden.bs.modal', function(e) {
+
+				 // $(document.body).addClass('modal-open');
+
+			});
+
+	modalConfirm.on('hidden.bs.modal', function(e) {
+		if (modalDialog) {
+			$(document.body).addClass('modal-open');
+		}
+		$(document.body).css("padding-right", "0");
+	});
+	/*
+	 * if (modalDialog) { modalDialog.on('hidden.bs.modal', function() {
+	 * $(document.body).removeClass('modal-open'); }); } else {
+	 * $(document.body).addClass('modal-open'); }
+	 */
+	$(" .bootbox-confirm .modal-footer button").css({
+		"float" : "right",
+		"margin-left" : "10px"
+	});
+}
+function saveWithDrawlSubjects(controlleMode,status)
+{
+	var formData = {};
+	$('[id^=withDrawlSubject_]').on('click',function(){
+		var subjectId=$(this).attr('data-selected');
+		var subjectCode=$(this).attr('data-subjectcode');
+		var studentSubjectId=$(this).attr('data-studentsubjectid');
+		var title=' Confirm withdrawal  ';
+		var message=' You are withdrawing  '+subjectCode+', Are you sure you want to continue ?'
+		+'<br><br><form id="genericSave"><div class="row"><div class=" col-md-6"><textarea class="form-control" name="withDrawalReason"  id="withDrawalReason" placeholder="Withdrawal reason" rows="5" cols="40" maxlength="50" required></textarea></div></div></form>';
+		
+		var modalConfirm=bootbox.confirm({
+			title:title,
+		    message: message,
+		    buttons : {
+				confirm : {
+					label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Yes",
+					className : "btn btn-sm btn-success",
+				},
+				cancel : {
+					label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>No",
+					className : "btn btn-sm btn-primary",
+				},
+			},
+		    callback: function (result) {
+		    	if(result)
+		    		{
+		    		if(!$('#genericSave').valid()){
+		    			return false;
+		    		}
+		    		var withDrawalReason=$('#withDrawalReason').val()
+		    		if(!withDrawalReason)
+		    			{
+		    			showMessage(' Please fill reason to withdrawal '+subjectCode,'error')
+		    			return false;
+		    			}
+			    	
+		        	bgCurtain();
+					formData.controllerMode=controlleMode;
+					formData.actionType=10;
+					formData.subjectId=subjectId;
+					formData.studentSubjectId=studentSubjectId;
+					formData.withDrawalReason=withDrawalReason;
+					status=true;
+					saveEnrollWithDrawlSubjects(formData,status);
+		    		}
+		    	modalConfirm=null;
+		    }
+			
+			
+		});
+		$(" .bootbox-confirm .modal-footer button").css({
+			"float" : "right",
+			"margin-left" : "10px"
+		});
+		
+		/*getConfirmDialog(title, message,function(data) 
+				{
+			bgCurtain();
+			formData.controllerMode=controlleMode;
+			formData.actionType=10;
+			
+			formData.subjectId=subjectId;
+			status=true;
+			saveEnrollWithDrawlSubjects(formData,status);
+			
+		});*/
+	});
+	$('[id^=enRollSubject_]').on('click',function(){
+		var subjectId=$(this).attr('data-selected');
+		var subjectCode=$(this).attr('data-subjectcode');
+		var studentSubjectId=$(this).attr('data-studentsubjectid');
+		getStudentModalConfirmDialog(" Confirm Cancel ", "This will cancel withdrawal/drop of   "+subjectCode+", Are you sure you want to continue ?",function(data) {
+			bgCurtain();
+			formData.controllerMode=controlleMode;
+			formData.actionType=9;
+			formData.subjectId=subjectId;
+			formData.studentSubjectId=studentSubjectId;
+			status=true;
+			saveEnrollWithDrawlSubjects(formData,status);
+			
+		});
+	});
+	
+	$('[id^=dropSubject_]').on('click',function(){
+		var subjectId=$(this).attr('data-selected');
+		var subjectCode=$(this).attr('data-subjectcode');
+		var studentSubjectId=$(this).attr('data-studentsubjectid');
+		getStudentModalConfirmDialog(" Confirm Drop ", " You are dropping "+subjectCode+", Are you sure you want to continue ?",function(data) {
+			bgCurtain();
+			formData.controllerMode=controlleMode;
+			formData.actionType=17;
+			formData.subjectId=subjectId;
+			formData.studentSubjectId=studentSubjectId;
+			status=true;
+			saveEnrollWithDrawlSubjects(formData,status);
+			
+		});
+	});
+	
+}
+function handleSubjectWithdrawlReport()
+{
+	$('#withdrawnReport').on('click', function(e){
+		var formData = {};
+		formData.controllerMode = 6530;
+		formData.actionType = 13;
+		
+		var userId=$(this).attr('data-userid');
+		
+		var modalConfirm=bootbox.confirm({
+			title:' Withdrawal subjects report ',
+		    message: ' Are you sure you need withdrawal subject report ? ' 
+		    	
+		    	+'<div class="form-group">'
+		    	+'<div class="col-md-4"><div class="radio"> <label for="registeredEmail">'
+		    	+'<input type="radio" name="withdrawalEmail"  value="1" id="registeredEmail" checked="checked" required>'
+		    	+'  Registered Email </label></div>'
+		    	+'<div class="radio">     <label for="alternateEmail">'
+		    	+'<input type="radio" name="withdrawalEmail" id="alternateEmail" value="2" required>'
+		    	+' Alternate Email '
+		    	+'</label> <div id="alternateEmailDiv" style="display:none"><input type="text" name="alternateEmailText" id="alternateEmailText" placeholder="Alternate Email" value="" ></div></div></div></div>',
+		
+				
+		    buttons : {
+				confirm : {
+					label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Yes",
+					className : "btn btn-sm btn-success",
+				},
+				cancel : {
+					label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>No",
+					className : "btn btn-sm btn-primary",
+				},
+			},
+		    callback: function (result) {
+		    	if(result)
+		    		{
+					if($('#alternateEmail').is(':checked'))
+						{
+						 var alternateEmailText=$('#alternateEmailText').val();
+						 if(!alternateEmailText)
+							 {
+							 showMessage('Please enter alternate email to send withdrawal report.');
+							 return false;
+							 }
+						 formData.alternateEmailText=alternateEmailText;
+						}
+					var withdrawalEmail=$('input[name="withdrawalEmail"]:checked').val();
+					bgCurtain();
+					formData.userId=userId;
+					formData.withdrawalEmail=withdrawalEmail
+					doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+						removeBgCurtain();
+						if (data.indexOf("SUCCESS") > -1) 
+						{
+							var dataArray = data.split("_")[1];
+							showMessage( " With drawl report sent successfully, please check provided mail ","success");
+						}
+						else
+						{
+							if(data){
+							var dataArray = data.split("_")[1];
+							showMessage(dataArray,"error");
+							}
+							else
+								showMessage(" Unable to process your request please try again.","error");
+						}
+					
+						
+					});
+		    		}
+		    	modalConfirm=null;
+		    }
+			
+			
+		});
+		
+		$(" .bootbox-confirm .modal-footer button").css({
+			"float" : "right",
+			"margin-left" : "10px"
+		});
+		$('#alternateEmail, #registeredEmail').off('click');
+		$('#alternateEmail, #registeredEmail').on('click', function(e){
+			if(this.id=='alternateEmail')
+				{
+				$('#alternateEmailDiv').show();
+				}
+			else{
+				$('#alternateEmailDiv').hide();
+			}
+			
+		});
+		
+	});
+}
+
+function handleEsaRegistrationConfirmation()
+{
+	$('#esaRegistrationConfirmation').on('click', function(e){
+		var formData = {};
+		formData.controllerMode = 6530;
+		formData.actionType = 14;
+		var userId=$(this).attr('data-userid');
+		var isFeedBackFinished=$(this).attr('data-isfeedbackfinished');
+		var esaId=$(this).attr('data-esaid');
+		var esaDescription=$(this).attr('data-esadescription');
+		var isFeedBackLinesOpened=$(this).attr('data-isfeedbacklinesopened');
+		var classBatchSectionId=$(this).attr('data-cbsId');
+		if(isFeedBackFinished==='false' || isFeedBackLinesOpened==='false')
+			{
+			showMessage(" Please provide  feedback for all subjects.","error");
+			//return;
+			return false;
+			}
+		
+		getStudentModalConfirmDialog(' ESA Registration Confirmation ', ' This will confirm the registration for  <strong> '+esaDescription+'</strong>, Are you sure you want to continue ? ', 
+				function(result){
+			bgCurtain();
+			formData.userId=userId;
+			formData.isFeedBackFinished=isFeedBackFinished;
+			formData.esaId=esaId;
+			formData.esaDescription=esaDescription;
+			formData.classBatchSectionId=classBatchSectionId;
+			doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+				removeBgCurtain();
+				if (data.indexOf("SUCCESS") > -1) 
+				{
+					var dataArray = data.split("_")[1];
+					showMessage( "ESA Registration confirmation submitted successfully ","success");
+				}
+				else
+				{
+					if(data){
+					var dataArray = data.split("_")[1];
+					showMessage(dataArray,"error");
+					}
+					else
+						showMessage(" Unable to process your request please try again.","error");
+				}
+			
+				
+			});
+		}, function(){
+			
+		});
+	});
+}
+
+function saveEnrollWithDrawlSubjects(formData,status)
+{
+	if(status){
+		doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+			removeBgCurtain();
+			if (data.indexOf("SUCCESS") > -1) {
+				var dataArray = data.split("_")[1];
+				var selectedValue=$('#semesters').val();
+				getStudentSubjectsBasedOnSemester (selectedValue, function(){
+					showIdMessage(dataArray,"success","showSubjectMessage_"+formData.subjectId,'right');
+				});
+				
+			}
+			else{
+				if(data){
+				var dataArray = data.split("_")[1];
+				showMessage(dataArray,"error");
+				}
+				else
+					showMessage("Unable to process your request please contact academy team.","error");
+			}
+		
+			
+		});
+		}
+}
+
+function showStudentSubjectFeedBack()
+{
+	$('[id^=subjectFeedBack]').on('click',function(){
+		
+		var subjectId=$(this).attr('data-selected');
+		var subjectCode=$(this).attr('data-subjectcode');
+		var subjectType=$(this).attr('data-subjecttype');
+		var feedbackSubmit=$(this).attr('data-feedbackSubmit');
+		var feedbackAnonymously=$(this).attr('data-feedbackAnonymously');
+		var classBatchSectiobId=$(this).attr('data-cbsId');
+		
+		if(subjectId)
+			{
+			var formData={
+					controllerMode:6530,
+					actionType:11,
+					subjectId:subjectId,
+					subjectCode:subjectCode,
+					feedbackMessageSubmit:feedbackSubmit,
+					feedbackMessageAnonymously:feedbackAnonymously,
+					batchClassId:$('#semesters').val(),
+					classBatchSectiobId:classBatchSectiobId,
+					subjectType:subjectType
+			}
+			doAjaxCall('studentProfileAdmin', 'post', formData, function(data) {
+				var buttons = [{
+									type : "button",
+									label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Save feeback",
+									className : "btn btn-sm btn-success",
+									callback : function(e) {
+										if (!$("#subjectFeedBackSave").valid())
+												return false;
+										return saveFacultySubjectFeedBack(formData);
+									}
+								},
+								{
+									type : "cancel",
+									label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+									className : "btn btn-sm btn-primary",
+									callback : null
+								}];
+				
+						getModalDialog('large', ' Faculty Feedback for '+subjectCode, data,	buttons, function(){
+							setFacultySubjectFeedBack(feedBackResponseData);
+						},function(){
+						});
+					});
+			}
+	});
+}
+
+//var studentResponsesOfSubjectFeedBack;
+function setFacultySubjectFeedBack(feedBackResponseData)
+{
+	var IS_JSON = true;
+    try
+    {
+            var json = $.parseJSON(feedBackResponseData);
+           // studentResponsesOfSubjectFeedBack=json;
+            if(json && json.questionsList)
+            	{ 
+            	var k=1;
+            	$.each(json.questionsList, function(index, item) {
+            	
+            		if(item.answer && item.answer.length>0 && item.uniqueId.length>0)
+            			{
+            			$('#ans_'+(item.uniqueId.trim()).split("_")[1]+'_'+(item.uniqueId.trim()).split("_")[0]+'_'+item.answer.trim()+item.slNo).prop('checked',true);
+            			}
+            		k=k+1;
+            		});
+            	}
+    }
+    catch(err)
+    {
+            IS_JSON = false;
+            showMessage('Some problem occured please contact academy team', 'error');
+    }                
+}
+
+
+function saveFacultySubjectFeedBack(formData)
+{
+	if(feedbackMessageSubmit==""){
+		feedbackMessageSubmit="There is no Message";
+	}
+	getConfirmDialog(" Save Feed back of "+formData.subjectCode, feedbackMessageSubmit,function(data) {
+		bgCurtain();
+		formData.actionType=12;
+		
+		//var formData = new FormData($('#genericSave')[0]);
+		var feedBackResponseArray=[];
+		$('input[type^=radio][name^=ans]').each(function(){
+			if($(this).prop('checked')==true)
+				{
+			var responseObject={};
+			responseObject.questionBankId=$(this).attr('data-bankid');
+			responseObject.answer=$(this).val();
+			feedBackResponseArray.push(responseObject);
+				}
+		});
+		formData.feedBackResponse=JSON.stringify(feedBackResponseArray);
+		formData.questionPaperId=$('#feedBackQuestionPaper').val();
+		doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+			removeBgCurtain();
+			if (data.indexOf("SUCCESS") > -1) {
+				var dataArray = data.split("_")[1];
+				
+				//showMessage(dataArray,"success");
+				modalDialog.modal('hide');
+				var selectedValue=$('#semesters').val();
+				getStudentSubjectsBasedOnSemester (selectedValue, function(){
+					showIdMessage(dataArray,"success","showSubjectMessage_"+formData.subjectId,'right');
+				});
+				
+			}
+			else{
+				showMessage("Unable to process your request please try again later.","error");
+			}
+		
+			
+		});
+		
+	}, false);
+	
+	return false;
+}
+
+//-----Hall Ticket-----
+function downloadHallTicket(userId,status){
+	
+	var formData = {
+	controllerMode : 6590,
+	actionType :15,
+	userId:userId,
+	status:status,
+	reqType:$("#requestForHallticket").val(),
+	alterEmail:$("#alternateEmail").val(),
+	}
+	doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+		showMessageStatus(data);
+	});
+
+}
+
+
+function downloadApplicationForm(userId,status){
+	
+	var formData = {
+	controllerMode : 6590,
+	actionType :16,
+	userId:userId,
+	status:status,
+	reqType:$("#requestForHallticket").val(),
+	alterEmail:$("#alternateEmail").val(),
+	}
+	doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+		showMessageStatus(data);
+	});
+
+}
+
+
+//-----Hall Ticket-----
+
+/////----Students Assignments-----///////
+
+function ckEditorKeyUp(type,thisReq){
+	var id=thisReq.id
+	var value =encodeURI($(thisReq).html());
+	$("#"+thisReq.id+"_"+type).val(value);
+}
+
+
+
+
+
+function takeAssignment(id,assignmentStatus,evaluateStatus,statusForPending,statusForClose){
+	
+	var formData = {
+			controllerMode : 6591,
+		    actionType : 3,
+	        id : id,
+	        assignmentStatus:assignmentStatus,
+	        evaluateStatus:evaluateStatus,
+	        statusForPending:statusForPending,
+	        statusForClose:statusForClose,
+	        selectedData  :"selectedData"
+		};
+		
+	
+	doAjaxCall(this.url, 'get', formData, function(data) {
+		var buttons = [
+		   			{
+		   				type : "button1",
+		   				label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span> Submit",
+		   				className : "btn-sm btn-primary",
+		   				callback : function(e) {
+		   					
+		   					var obj={};
+		   					obj.callBack=true;
+		   					handleGenericSave(formData,obj,0);
+		   				}
+		   			},
+		   			{
+						type : "cancel",
+						label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span> Cancel",
+						className : "btn-sm btn-primary",
+						callback : null
+					}];
+		getModalDialog('large',"Assignments", data, buttons, function() {
+			 eval(this.url + "(controllerMode,actionType,id,selectedData);");
+
+		},null,null,null);
+
+	});
+	
+}
+
+function setCkEditorDataStudents(json){
+	
+	  	var allInstances=CKEDITOR.instances;
+	  	if(allInstances.length!=0){
+	 	if(json.question)
+	 	document.getElementById('assignment').innerHTML=json.assignmentName;
+	 	document.getElementById('subject').innerHTML=json.subjectName;
+	 	document.getElementById('assignType').innerHTML=json.assignmentTypeName;
+	 	document.getElementById('status').innerHTML=getAssignmentStatus(json.status);
+	 	document.getElementById('startDate').innerHTML=formatDate(json.startdate,'DD-MMM-YYYY');
+	 	document.getElementById('endDate').innerHTML=formatDate(json.enddate,'DD-MMM-YYYY');
+	 	document.getElementById('question').innerHTML=decodeURI(json.question);
+	 	document.getElementById('suggestion').innerHTML=decodeURI(json.suggestion);
+	 	if(json.answer!=null){
+	 	allInstances.stu_answer.setData(decodeURI(json.answer));
+	 	 $("#stu_answer_1").val(decodeURI(json.answer));
+	  	}
+	}
+	}
+
+function getAssignmentStatus(status){
+	var AssignmentStatus = "";
+
+	switch (parseInt(status)) {
+	case 1:
+		AssignmentStatus = "Active";
+		break;
+	case 2:
+		AssignmentStatus = "Pending";
+		break;
+	case 3:
+		AssignmentStatus = "Closed";
+		break;
+		
+	}
+	return AssignmentStatus;
+}
+
+function getAssignmentType(type){
+	var AssignmentType = "";
+
+	switch (parseInt(type)) {
+	case 1:
+		AssignmentType = "Written";
+		break;
+	case 2:
+		AssignmentType = "Document Upload";
+		break;
+	case 3:
+		AssignmentType = "Video Upload";
+		break;
+		
+	}
+	return AssignmentType;
+}
+
+
+
+function getStudentAttendanceBasedOnSemester (selectedValue) {
+	if (selectedValue) {
+		var formData = {};
+		formData.controllerMode = 6592;
+		formData.actionType = 8;
+		formData.batchClassId = selectedValue;
+		doAjaxCall('studentProfileAdmin', 'POST', formData, function(data) {
+			$('#studentAttendanceSemester').html(data);
+		});
+	}
+
+}
+
+/////----Students Assignments-----///////
+
+function toggleMenuOnClickOfLink() {
+	$('#sidebar').find('ul > li > a').on('click', function() {		
+		$('#sidebar').collapse('hide');
+	});
+}
+
+
+//****************************Register For Placement : Start By Gaurav ************************
+
+function saveRegisterPlacement(PlacementCycleId,status)
+{
+	var description = "";
+	var reasonId = $('input[name=ifNotPlaced_'+PlacementCycleId+']:checked').val();
+		
+		// $('input[name="ifNotPlaced_"'+PlacementCycleId+']:checked').val();
+	var higherStudyTypeId = $('input[name="higherStudyType"]:checked').val();
+	
+	// Validation Start
+	if(status==1){
+		if(!reasonId)
+		{
+			showMessage("Please select Atleast one option.","error");
+			return false;
+		}
+		else if(reasonId==1)
+		{
+			if(!higherStudyTypeId)
+			{
+				showMessage("Please select Atleast one option.","error");
+				return false;
+			}
+			if(higherStudyTypeId==4)
+			{
+				description = $("#otherStreamType_"+PlacementCycleId).val();
+				if(!description)
+				{
+					showMessage("Please Provide Details.","error");
+					return false;
+				}
+			}
+		}
+		else if(reasonId==2){
+			description = $("#reasonDetailsId_"+PlacementCycleId).val();
+			if(!description)
+			{
+				showMessage("Please Provide Details.","error");
+				return false;
+			}
+		}
+	}	
+	// Validation End
+	
+	var formData = {
+			controllerMode : 6595,
+			actionType :194,
+			PlacementCycleId:PlacementCycleId,
+			reasonId : (reasonId==undefined) ? (reasonId=0) : reasonId,
+			higherStudyTypeId : (higherStudyTypeId==undefined) ? (higherStudyTypeId=0) : higherStudyTypeId,
+			description : description,
+			status : status
+			}
+			doAjaxCall(this.url, 'POST', formData, function(data) {			
+				var dataArray = data.split("_");
+				var msg = dataArray[0].toUpperCase();
+				var statusResp = dataArray[1];
+				if (msg == "SUCCESS") {
+					showMessage(statusResp, "success");
+					$("#notplaceddetails_"+PlacementCycleId).hide();
+					$("#initPlacementWrapper_"+PlacementCycleId).hide();
+					if(status==1){
+					$("#placementSubmitStatus_"+PlacementCycleId).hide();
+					$("#placementrejected_"+PlacementCycleId).show();					
+					}
+					else{
+					$("#placementrejected_"+PlacementCycleId).hide();
+					$("#placementSubmitStatus_"+PlacementCycleId).show();
+					}
+					$("#reasontooptout_"+PlacementCycleId).hide();
+				}else{
+					showMessage(statusResp, "error");
+				}				
+			});
+}
+
+
+function placementPhaseYes(name,placementCycleId,userId)
+{
+	$("#notplaceddetails_"+placementCycleId).hide();
+	
+	var formData = {
+			controllerMode : 6595,
+			actionType :195,
+			name : name,
+			placementCycleId:placementCycleId,
+			userId : userId
+			}
+	
+	var buttons = [{
+		type : "button",
+		label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Submit",
+		className : "btn btn-sm btn-success",
+		callback : function(e) {
+			saveRegisterPlacement(placementCycleId,0);
+		}
+	},
+	{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+		className : "btn btn-sm btn-primary",
+		callback : null
+	}];
+	
+			doAjaxCall(this.url, 'POST', formData, function(data) {			
+				getModalDialog('medium', 'Student Info', data, buttons, function() {
+				});
+			});
+}
+
+function placementPhaseNo(name,PlacementCycleId,type)
+{
+	$('#notplaceddetails_'+PlacementCycleId).show();		
+	$('#placementSubmitStatus_'+PlacementCycleId).hide();
+	if(type==1)
+		{
+		$('#reasontooptout_'+PlacementCycleId).show();
+		}
+}	
+
+//****************************Register For Placement : END By Gaurav ************************
+
+
+
+function enrollToCompany(PlacementCompanyId,JobAnnouncementId)
+{
+	var formData = {
+			controllerMode : 6595,
+			actionType :206,
+			PlacementCompanyId:PlacementCompanyId,
+			JobAnnouncementId : JobAnnouncementId,
+			menuId : this.menuId
+			}
+	
+	var buttons = [{
+		type : "Submit",
+		label : "<span class='glyphicon glyphicon-ok-circle' aria-hidden='true'></span>Submit",
+		className : "btn btn-sm btn-success",
+		callback : function(e) {
+			//saveStudentForCompany(PlacementCompanyId);
+			if($("#checkboxes-0").is(':checked')){
+				if($("#existingFileName").text()=="()")
+					{
+					showMessage("No resume Exists. Upload Resume", "error");
+					return false;
+					}
+			    $("#existingresume").val("1");  // checked
+			}
+			else
+				$("#existingresume").val("0");  // unchecked
+			
+			var formData1 = {}
+			var obj={};
+		    handleGenericSave(formData,obj,0);
+		    $('a#menuTab_666').trigger('click');
+		}
+	},
+	{
+		type : "cancel",
+		label : "<span class='glyphicon glyphicon-remove-circle' aria-hidden='true'></span>Cancel",
+		className : "btn btn-sm btn-primary",
+		callback : null
+	}];
+	
+			doAjaxCall(this.url, 'POST', formData, function(data) {			
+				getModalDialog('medium', 'Enrollment for the company', data, buttons, function() {
+				});
+			});
+}
+
+
+
+
+
+function unregisterEnrolledCompany(PlacementCompanyId,JobAnnouncementId)
+{
+getConfirmDialog(
+			"Enrollment For The Company",
+			" Do you want to Unregister. Are you sure ?",
+			function() {
+				var formData = {
+						controllerMode : 6595,
+						actionType :207,
+						PlacementCompanyId:PlacementCompanyId,
+						JobAnnouncementId : JobAnnouncementId,
+						menuId : this.menuId
+						}
+			doAjaxCall(this.url, 'GET', formData, function(data) {
+				var dataArray = data.split("_");
+				var msg = dataArray[0].toUpperCase();
+				var statusResp = dataArray[1];
+				if (msg == "SUCCESS") {
+				showMessage(statusResp, "success");
+				$('a#menuTab_666').trigger('click');
+				}else{
+					showMessage(statusResp, "error");
+				}
+			});
+			});	
+}
